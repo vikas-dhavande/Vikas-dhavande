@@ -1,0 +1,218 @@
+﻿"use client";
+
+import React, { useState, useEffect, useTransition } from "react";
+import Link from "next/link";
+import { account } from "@/lib/appwrite";
+import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
+
+interface AppwriteUser {
+  $id: string;
+  name: string;
+  email: string;
+  prefs?: {
+    avatar?: string;
+    role?: string;
+  };
+}
+
+export function Navbar() {
+  const [user, setUser] = useState<AppwriteUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    account
+      .get()
+      .then((u) => setUser(u as AppwriteUser))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      try {
+        await account.deleteSession("current");
+        setUser(null);
+        setDropdownOpen(false);
+      } catch {
+        setUser(null);
+        setDropdownOpen(false);
+      }
+    });
+  };
+
+  const avatarUrl =
+    user?.prefs?.avatar ??
+    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name ?? "U")}`;
+  const roleName = user?.prefs?.role ?? "Member";
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-[rgba(39,39,42,0.8)] bg-[#000000]/80 backdrop-blur-xl">
+      <div className="flex w-full items-center justify-between px-4 lg:px-8 h-16">
+        {/* Brand / Logo */}
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm transition-transform duration-200 group-hover:scale-105">
+              <div className="h-full w-full rounded-full bg-[#000000] flex items-center justify-center">
+                <span className="font-mono text-sm font-black text-white">W</span>
+              </div>
+            </div>
+            <span className="text-base font-bold tracking-tight text-white group-hover:text-white/90">
+              Webpro
+            </span>
+          </Link>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <Link href="#explore" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
+              Explore
+            </Link>
+            <Link href="#features" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
+              Features
+            </Link>
+            <Link href="#showcase" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
+              Showcase
+            </Link>
+            <Link href="#updates" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
+              Updates
+            </Link>
+          </nav>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-3">
+
+          {/* ── Theme Toggle (always visible, desktop + mobile) ── */}
+          <ThemeToggleButton />
+
+          {loading ? (
+            /* Loading skeleton */
+            <div className="h-8 w-20 rounded-full bg-[rgba(255,255,255,0.06)] animate-pulse" />
+          ) : user ? (
+            /* Logged-In: Avatar + Dropdown */
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2.5 rounded-full p-1 pl-2 border border-[rgba(39,39,42,0.8)] bg-[rgba(24,24,27,0.8)] hover:border-[rgba(255,255,255,0.25)] transition-all cursor-pointer"
+              >
+                <div className="hidden sm:flex flex-col text-right leading-tight pr-1">
+                  <span className="text-xs font-semibold text-white">{user.name}</span>
+                  <span className="text-[10px] text-[#A1A1AA]">{roleName}</span>
+                </div>
+                <div className="relative">
+                  <img
+                    src={avatarUrl}
+                    alt={user.name}
+                    className="h-8 w-8 rounded-full object-cover border border-[rgba(255,255,255,0.2)]"
+                  />
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-[#34D399] border-2 border-[#000000]" />
+                </div>
+              </button>
+
+              {/* User Dropdown */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[rgba(39,39,42,0.8)] bg-[#0D0D0F] p-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 z-50">
+                  <div className="px-3 py-2 border-b border-[rgba(39,39,42,0.6)] mb-1">
+                    <p className="text-xs font-semibold text-white">{user.name}</p>
+                    <p className="text-[11px] text-[#71717A] truncate">{user.email}</p>
+                  </div>
+                  <div className="flex flex-col gap-0.5 text-xs text-[#A1A1AA]">
+                    <Link
+                      href="/profile"
+                      className="rounded-lg px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Profile &amp; Account
+                    </Link>
+                    <a
+                      href="#settings"
+                      className="rounded-lg px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Workspace Settings
+                    </a>
+                    <a
+                      href="#billing"
+                      className="rounded-lg px-3 py-2 hover:bg-[rgba(255,255,255,0.06)] hover:text-white transition-colors"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Billing &amp; Subscription
+                    </a>
+                  </div>
+                  <div className="mt-1 pt-1 border-t border-[rgba(39,39,42,0.6)]">
+                    <button
+                      onClick={handleLogout}
+                      disabled={isPending}
+                      className="w-full text-left rounded-lg px-3 py-2 text-xs font-medium text-[#E11D48] hover:bg-[rgba(225,29,72,0.1)] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {isPending ? "Signing out…" : "Sign Out"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Logged-Out */
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/login" className="btn-pill-primary">
+                Login
+              </Link>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center justify-center rounded-full border border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs font-medium text-white hover:bg-[rgba(255,255,255,0.1)] transition-all cursor-pointer"
+              >
+                Get Started
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(39,39,42,0.8)] text-[#A1A1AA] hover:text-white"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-[rgba(39,39,42,0.8)] bg-[#000000] px-4 py-4 space-y-3">
+          <nav className="flex flex-col gap-2 text-sm text-[#A1A1AA]">
+            <Link href="#explore" className="py-2 hover:text-white">Explore</Link>
+            <Link href="#features" className="py-2 hover:text-white">Features</Link>
+            <Link href="#showcase" className="py-2 hover:text-white">Showcase</Link>
+            <Link href="#updates" className="py-2 hover:text-white">Updates</Link>
+          </nav>
+          <div className="pt-2 border-t border-[rgba(39,39,42,0.6)]">
+            {user ? (
+              <button
+                onClick={handleLogout}
+                disabled={isPending}
+                className="w-full text-center py-2 text-xs rounded-full border border-[rgba(225,29,72,0.4)] text-[#E11D48] disabled:opacity-50"
+              >
+                {isPending ? "Signing out…" : "Sign Out"}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="block w-full text-center py-2 text-xs rounded-full border border-[rgba(39,39,42,0.8)] bg-[rgba(255,255,255,0.05)] text-white"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

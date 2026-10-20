@@ -1,0 +1,267 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant cyberpunk (&:is(.cyberpunk *));
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+@theme inline {
+  --font-heading: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
+  --font-sans: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
+  --font-mono: "Fira Code", monospace;
+
+  /* Color Palette Mappings from DESIGN.md */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Lightswind Brand Colors from DESIGN.md */
+  --color-primarylw: var(--primarylw);
+  --color-greedy: var(--greedy);
+  --color-darklw: var(--darklw);
+
+  /* Radii Tokens from DESIGN.md */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+}
+
+/* 
+ * ROOT DESIGN SYSTEM SPECIFICATIONS
+ * Measured and extracted from DESIGN.md (Lightswind UI)
+ */
+:root {
+  /* Default Obsidian Dark Space Palette */
+  --background: #000000;
+  --foreground: #f4f4f5;
+  --card: #0d0d0f;
+  --card-foreground: #f4f4f5;
+  --popover: #09090b;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #09090b;
+  --secondary: #18181b;
+  --secondary-foreground: #f4f4f5;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #ffffff;
+  --destructive: #e11d48;
+  --border: rgba(39, 39, 42, 0.8);
+  --input: rgba(39, 39, 42, 0.9);
+  --ring: #3b82f6;
+
+  /* Custom Design Properties from DESIGN.md */
+  --primarylw: #e11d48;
+  --greedy: #173eff;
+  --darklw: #11131b;
+  --island-theme: #e11d48;
+  --lw-primary-color: #ffffff;
+  --footer-card-bg-gradient: #000000;
+  --footer-card-border: rgba(39, 39, 42, 0.8);
+  --footer-card-box-border: rgba(39, 39, 42, 0.8);
+  --footer-card-btn-bg: #ffffff;
+  --footer-card-btn-text: #09090b;
+  --footer-card-btn-hover: #e4e4e7;
+  --footer-card-heading: #ffffff;
+  --footer-card-subtle: #71717a;
+  --footer-card-link-hover: #ffffff;
+  --footer-pill-bg: rgba(255, 255, 255, 0.06);
+  --footer-pill-border: rgba(39, 39, 42, 0.8);
+  --footer-pill-text: #d4d4d8;
+  --footer-divider: rgba(39, 39, 42, 0.6);
+
+  --radius: 0.5rem;
+}
+
+/* Light Mode Overrides */
+html:not(.dark):not(.cyberpunk) {
+  --background: #fafafb;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #09090b;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #09090b;
+  --destructive: #e11d48;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #3b82f6;
+}
+
+/* Cyberpunk Variant from DESIGN.md Accent Ramp */
+.cyberpunk {
+  --background: #060810;
+  --foreground: #f4f4f5;
+  --card: #0c1020;
+  --card-foreground: #f4f4f5;
+  --primary: #e11d48;
+  --primary-foreground: #ffffff;
+  --border: rgba(77, 138, 255, 0.3);
+  --ring: #e11d48;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+}
+
+/*
+ * DESIGN RECIPES (from DESIGN.md)
+ */
+
+/* Pill CTA Button (Recipe 2 & 3 from DESIGN.md) */
+.btn-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--footer-card-btn-bg);
+  color: var(--footer-card-btn-text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-pill-primary:hover {
+  background-color: var(--footer-card-btn-hover);
+  transform: translateY(-1px);
+}
+
+.btn-pill-primary:active {
+  transform: translateY(0);
+}
+
+/* Frosted Pill Tag (Recipe: footer-pill-bg & border from DESIGN.md) */
+.pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  background-color: var(--footer-pill-bg);
+  border: 0.8px solid var(--footer-pill-border);
+  color: var(--footer-pill-text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  backdrop-filter: blur(8px);
+}
+
+/* Glassmorphic Card (Recipe: Card 3 from DESIGN.md) */
+.glass-card {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 0.8px solid rgba(39, 39, 42, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark Card (Recipe: Card 1 from DESIGN.md) */
+.obsidian-card {
+  background-color: rgb(23, 23, 23);
+  border: 0.8px solid rgba(39, 39, 42, 0.8);
+  border-radius: 12px;
+}
+
+/* Lightswind Rainbow Gradient Accent Strip */
+.spectrum-gradient {
+  background: linear-gradient(90deg,
+      #ff6d1b,
+      #ffee55,
+      #5bff89,
+      #4d8aff,
+      #6b5fff,
+      #ff64f9,
+      #ff6565);
+}
+
+/*
+ * KEYFRAME ANIMATIONS (from DESIGN.md)
+ */
+@keyframes neon-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.8));
+  }
+
+  50% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.4));
+  }
+}
+
+@keyframes neon-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes skeletonLoader {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoader 1.5s infinite;
+}
