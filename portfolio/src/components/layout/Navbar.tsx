@@ -55,6 +55,21 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+
+    // Auto-sync session when tab receives focus (e.g. after popup or external auth)
+    const handleFocus = () => {
+      account
+        .get()
+        .then((u) => {
+          setUser(u as AppwriteUser);
+          const stored = localStorage.getItem("avatar_seed");
+          if (stored) setAvatarSeed(stored);
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

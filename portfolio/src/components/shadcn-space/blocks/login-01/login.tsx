@@ -70,14 +70,32 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     }
   };
 
-  const handleGithub = () => {
+  const handleGithub = async () => {
+    setError(null);
     setOauthLoading("github");
-    signInWithGithub();
+    try {
+      const user = await signInWithGithub();
+      onSuccess(user.name);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "GitHub authentication failed.";
+      setError(msg);
+    } finally {
+      setOauthLoading(null);
+    }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
+    setError(null);
     setOauthLoading("google");
-    signInWithGoogle();
+    try {
+      const user = await signInWithGoogle();
+      onSuccess(user.name);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Google authentication failed.";
+      setError(msg);
+    } finally {
+      setOauthLoading(null);
+    }
   };
 
   return (
@@ -118,7 +136,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
                     alt="google icon"
                     className="h-4 w-4"
                   />
-                  {oauthLoading === "google" ? "Redirecting…" : "Sign in with Google"}
+                  {oauthLoading === "google" ? "Connecting popup…" : "Sign in with Google"}
                 </Button>
                 <Button
                   variant="outline"
@@ -137,7 +155,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
                     alt="github icon"
                     className="hidden dark:block h-4 w-4"
                   />
-                  {oauthLoading === "github" ? "Redirecting…" : "Sign in with Github"}
+                  {oauthLoading === "github" ? "Connecting popup…" : "Sign in with Github"}
                 </Button>
               </Field>
 
@@ -223,9 +241,12 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
               {/* Error message */}
               {error && (
-                <p className="text-sm text-destructive text-center rounded-lg bg-destructive/10 px-3 py-2">
-                  {error}
-                </p>
+                <div className="text-xs text-destructive rounded-lg bg-destructive/10 border border-destructive/20 p-3 leading-relaxed flex items-start gap-2.5 animate-in fade-in">
+                  <svg className="h-4 w-4 shrink-0 text-destructive mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span className="flex-1 text-left">{error}</span>
+                </div>
               )}
 
               <Field className="gap-4">
