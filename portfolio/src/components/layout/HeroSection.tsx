@@ -58,18 +58,22 @@ export function HeroSection() {
       <div className="relative z-10 flex w-full flex-col gap-4 px-4 pb-12 sm:flex-row sm:items-center sm:justify-between sm:pb-16 lg:px-8">
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button className="group h-11 w-full rounded-full px-6 font-medium text-black bg-white hover:bg-white/90 sm:w-fit cursor-pointer shadow-lg transition-all">
-            <span>Explore Portfolio</span>
-            <ArrowUpRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Button>
+          <a href="#experience" className="w-full sm:w-fit">
+            <Button className="group h-11 w-full rounded-full px-6 font-medium text-black bg-white hover:bg-white/90 sm:w-fit cursor-pointer shadow-lg transition-all">
+              <span>Explore Portfolio</span>
+              <ArrowUpRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Button>
+          </a>
 
-          <Button
-            variant="outline"
-            className="group h-11 w-full rounded-full px-6 font-medium border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] text-[#F4F4F5] backdrop-blur-md hover:bg-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.3)] sm:w-fit cursor-pointer transition-all"
-          >
-            <span>Partner With Us</span>
-            <ArrowUpRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Button>
+          <a href="#social" className="w-full sm:w-fit">
+            <Button
+              variant="outline"
+              className="group h-11 w-full rounded-full px-6 font-medium border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] text-[#F4F4F5] backdrop-blur-md hover:bg-[rgba(255,255,255,0.12)] hover:border-[rgba(255,255,255,0.3)] sm:w-fit cursor-pointer transition-all"
+            >
+              <span>Connect With Vikas</span>
+              <ArrowUpRight className="ml-1.5 size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Button>
+          </a>
         </div>
 
         {/* Video Controls */}

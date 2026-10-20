@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
-  DialogTrigger,
   ModalOverlay,
   Modal,
   Dialog,
@@ -18,10 +17,28 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ trigger, onAuthSuccess }: AuthModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <DialogTrigger>
-      {trigger}
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen(true);
+          }
+        }}
+        className="inline-flex cursor-pointer"
+      >
+        {trigger}
+      </div>
+
       <ModalOverlay
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
         isDismissable
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm data-entering:animate-in data-entering:fade-in-0 data-exiting:animate-out data-exiting:fade-out-0 duration-200"
       >
@@ -29,6 +46,10 @@ export function AuthModal({ trigger, onAuthSuccess }: AuthModalProps) {
           <Dialog className="outline-none">
             {({ close }) => (
               <LoginForm
+                onClose={() => {
+                  close();
+                  setIsOpen(false);
+                }}
                 onSuccess={(userName: string) => {
                   // 1. Cache avatar seed in localStorage for instant client reads
                   try {
@@ -45,12 +66,13 @@ export function AuthModal({ trigger, onAuthSuccess }: AuthModalProps) {
 
                   // 4. Close the modal
                   close();
+                  setIsOpen(false);
                 }}
               />
             )}
           </Dialog>
         </Modal>
       </ModalOverlay>
-    </DialogTrigger>
+    </>
   );
 }

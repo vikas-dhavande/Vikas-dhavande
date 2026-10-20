@@ -11,10 +11,10 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm">
                 <div className="h-full w-full rounded-full bg-[#000000] flex items-center justify-center">
-                  <span className="font-mono text-xs font-black text-white">P</span>
+                  <span className="font-mono text-xs font-black text-white">V</span>
                 </div>
               </div>
-              <span className="text-base font-bold text-white">Portfolio</span>
+              <span className="text-base font-bold text-white">Vikas</span>
             </Link>
             <p className="mt-4 max-w-sm text-xs text-[#A1A1AA] leading-relaxed">
               Crafted for exceptional speed and design fidelity. Designed with modern dark palettes, partial prerendering,
@@ -27,87 +27,86 @@ export function Footer() {
           </div>
 
           {/* Links Column 1 */}
+          {/* Links Column 1: Portfolio */}
           <div>
             <h4 className="font-semibold text-white uppercase text-[11px] tracking-wider mb-4">
-              Product
+              Portfolio
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="#features" className="hover:text-white transition-colors">
-                  Features
+                <a href="#experience" className="hover:text-white transition-colors">
+                  Experience
                 </a>
               </li>
               <li>
-                <a href="#showcase" className="hover:text-white transition-colors">
-                  Showcase
+                <a href="#education" className="hover:text-white transition-colors">
+                  Education
                 </a>
               </li>
               <li>
-                <a href="#integrations" className="hover:text-white transition-colors">
-                  Integrations
+                <a href="#skills" className="hover:text-white transition-colors">
+                  Skills
                 </a>
               </li>
               <li>
-                <a href="#roadmap" className="hover:text-white transition-colors">
-                  Roadmap
+                <a href="#projects" className="hover:text-white transition-colors">
+                  Projects
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Links Column 2 */}
+          {/* Links Column 2: Resources & CV */}
           <div>
             <h4 className="font-semibold text-white uppercase text-[11px] tracking-wider mb-4">
-              Resources
+              Knowledge
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="#docs" className="hover:text-white transition-colors">
-                  Documentation
+                <a href="#resources" className="hover:text-white transition-colors">
+                  Curated Resources
                 </a>
               </li>
               <li>
-                <a href="#guides" className="hover:text-white transition-colors">
-                  Guides
+                <a href="/resume.md" target="_blank" className="hover:text-white transition-colors">
+                  Resume (Markdown)
                 </a>
               </li>
               <li>
-                <a href="#api" className="hover:text-white transition-colors">
-                  API Reference
+                <a href="#projects" className="hover:text-white transition-colors">
+                  HIL Simulation Rigs
                 </a>
               </li>
               <li>
-                <a href="#changelog" className="hover:text-white transition-colors">
-                  Changelog
+                <a href="#experience" className="hover:text-white transition-colors">
+                  Avionics Subsystems
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Links Column 3 */}
+          {/* Links Column 3: Contact */}
           <div>
             <h4 className="font-semibold text-white uppercase text-[11px] tracking-wider mb-4">
-              Company
+              Direct Contact
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="#about" className="hover:text-white transition-colors">
-                  About
+                <a href="mailto:vikasndhavande@gmail.com" className="hover:text-white transition-colors">
+                  vikasndhavande@gmail.com
                 </a>
               </li>
               <li>
-                <a href="#careers" className="hover:text-white transition-colors">
-                  Careers
+                <a href="tel:+919731999323" className="hover:text-white transition-colors">
+                  +91 9731999323
                 </a>
               </li>
               <li>
-                <a href="#privacy" className="hover:text-white transition-colors">
-                  Privacy Policy
-                </a>
+                <span className="text-[#71717A]">Bangalore, India</span>
               </li>
               <li>
-                <a href="#terms" className="hover:text-white transition-colors">
-                  Terms of Service
+                <a href="#social" className="text-[#E11D48] hover:underline">
+                  Send Direct Dispatch →
                 </a>
               </li>
             </ul>
@@ -116,16 +115,19 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[rgba(39,39,42,0.6)] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <p>© {new Date().getFullYear()} Portfolio. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Vikas N Dhavande. All rights reserved.</p>
           <div className="flex items-center gap-6 text-[#A1A1AA]">
-            <a href="#twitter" className="hover:text-white transition-colors">
-              Twitter / X
+            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+              LinkedIn
             </a>
-            <a href="#github" className="hover:text-white transition-colors">
+            <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
               GitHub
             </a>
-            <a href="#discord" className="hover:text-white transition-colors">
-              Discord
+            <a href="mailto:vikasndhavande@gmail.com" className="hover:text-white transition-colors">
+              Email
+            </a>
+            <a href="#social" className="hover:text-white transition-colors">
+              Socials
             </a>
           </div>
         </div>

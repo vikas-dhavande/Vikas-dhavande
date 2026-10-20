@@ -7,6 +7,8 @@ import { account } from "@/lib/appwrite";
 import { clearCookieAction } from "@/app/actions";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 import { AuthModal } from "@/components/ui/AuthModal";
+import { RefreshCw } from "lucide-react";
+import { triggerWebsiteRefresh } from "@/components/ui/InitialWebLoader";
 
 interface AppwriteUser {
   $id: string;
@@ -38,7 +40,14 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   const [loading, setLoading] = useState(!initialUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await triggerWebsiteRefresh("Refreshing Animations & Pipeline…");
+    setTimeout(() => setRefreshing(false), 800);
+  };
 
   useEffect(() => {
     if (initialUser) {
@@ -115,20 +124,22 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
           <Link href="/" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm transition-transform duration-200 group-hover:scale-105">
               <div className="h-full w-full rounded-full bg-[#000000] flex items-center justify-center">
-                <span className="font-mono text-sm font-black text-white">P</span>
+                <span className="font-mono text-sm font-black text-white">V</span>
               </div>
             </div>
             <span className="text-base font-bold tracking-tight text-white group-hover:text-white/90">
-              Portfolio
+              Vikas
             </span>
           </Link>
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="#explore" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Explore</Link>
-            <Link href="#features" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Features</Link>
-            <Link href="#showcase" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Showcase</Link>
-            <Link href="#updates" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Updates</Link>
+            <Link href="#experience" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Experience</Link>
+            <Link href="#education" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Education</Link>
+            <Link href="#skills" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Skills</Link>
+            <Link href="#projects" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Projects</Link>
+            <Link href="#resources" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Resources</Link>
+            <Link href="#social" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Social</Link>
           </nav>
         </div>
 
@@ -137,6 +148,21 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
           {/* Theme Toggle — always visible */}
           <ThemeToggleButton />
+
+          {/* Quick Animation & API Refresh Trigger */}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refresh animation pipeline & API cache"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(39,39,42,0.8)] bg-[rgba(24,24,27,0.8)] text-[#A1A1AA] hover:text-white hover:border-[rgba(255,255,255,0.25)] hover:bg-[rgba(255,255,255,0.06)] transition-all duration-150 cursor-pointer disabled:opacity-50"
+            aria-label="Refresh animation rendering and API cache"
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                refreshing ? "animate-spin text-[#E11D48]" : "group-hover:rotate-180"
+              }`}
+            />
+          </button>
 
           {loading ? (
             <div className="h-8 w-20 rounded-full bg-[rgba(255,255,255,0.06)] animate-pulse" />
@@ -216,21 +242,13 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
               )}
             </div>
           ) : (
-            /* ── Logged-Out: Auth Modal triggers ── */
+            /* ── Logged-Out: Auth Modal trigger ── */
             <div className="flex items-center gap-2 sm:gap-3">
               <AuthModal
                 onAuthSuccess={handleAuthSuccess}
                 trigger={
                   <button className="btn-pill-primary">
                     Login
-                  </button>
-                }
-              />
-              <AuthModal
-                onAuthSuccess={handleAuthSuccess}
-                trigger={
-                  <button className="hidden sm:inline-flex items-center justify-center rounded-full border border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs font-medium text-white hover:bg-[rgba(255,255,255,0.1)] transition-all cursor-pointer">
-                    Get Started
                   </button>
                 }
               />
@@ -257,10 +275,12 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[rgba(39,39,42,0.8)] bg-[#000000] px-4 py-4 space-y-3">
           <nav className="flex flex-col gap-2 text-sm text-[#A1A1AA]">
-            <Link href="#explore" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Explore</Link>
-            <Link href="#features" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Features</Link>
-            <Link href="#showcase" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Showcase</Link>
-            <Link href="#updates" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Updates</Link>
+            <Link href="#experience" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Experience</Link>
+            <Link href="#education" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Education</Link>
+            <Link href="#skills" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Skills</Link>
+            <Link href="#projects" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Projects</Link>
+            <Link href="#resources" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
+            <Link href="#social" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Social</Link>
           </nav>
           <div className="pt-2 border-t border-[rgba(39,39,42,0.6)]">
             {user ? (

@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/field";
 // FieldLabel is used for email/password/name fields above
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -29,11 +28,12 @@ import {
 
 interface LoginFormProps {
   onSuccess: (userName: string) => void;
+  onClose?: () => void;
 }
 
 type Mode = "login" | "signup";
 
-const LoginForm = ({ onSuccess }: LoginFormProps) => {
+const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,6 +41,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"github" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   const toggleMode = () => {
     setMode((m) => (m === "login" ? "signup" : "login"));
@@ -101,6 +102,18 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   return (
     <div className="w-full max-w-lg px-4 sm:px-0 mx-auto">
       <Card className="px-6 py-8 sm:p-12 relative gap-6">
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 h-8 w-8 rounded-full border border-border bg-background/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all flex items-center justify-center cursor-pointer z-10"
+            aria-label="Close dialog"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
         <CardHeader className="text-center gap-6 p-0">
           <div className="mx-auto">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF]">
@@ -222,21 +235,26 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               </div>
 
               {mode === "login" && (
-                <Field orientation="horizontal" className="justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox defaultSelected className="cursor-pointer">
-                      <span className="text-sm text-primary font-normal cursor-pointer">
-                        Remember this device
-                      </span>
-                    </Checkbox>
-                  </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm pt-1">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+                    <input
+                      type="checkbox"
+                      id="remember-device"
+                      checked={rememberDevice}
+                      onChange={(e) => setRememberDevice(e.target.checked)}
+                      className="size-4 rounded border border-border bg-background accent-primary text-primary focus:ring-2 focus:ring-primary/50 cursor-pointer transition-all"
+                    />
+                    <span className="text-muted-foreground group-hover:text-foreground transition-colors cursor-pointer select-none">
+                      Remember this device
+                    </span>
+                  </label>
                   <a
                     href="#"
-                    className="text-sm text-card-foreground font-medium text-end"
+                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors font-medium text-end"
                   >
                     Forgot password?
                   </a>
-                </Field>
+                </div>
               )}
 
               {/* Error message */}

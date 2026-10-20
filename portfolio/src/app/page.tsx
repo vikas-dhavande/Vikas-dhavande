@@ -4,9 +4,14 @@ import { Navbar } from "@/components/layout/Navbar";
 import { IntroHeroSection } from "@/components/layout/IntroHeroSection";
 import { HeroSection } from "@/components/layout/HeroSection";
 import { LogoCloud } from "@/components/shadcn-space/blocks/logo-cloud-01/logo-cloud";
-import { PhotoSection } from "@/components/layout/PhotoSection";
-import { FormSection } from "@/components/layout/FormSection";
+import { ExperienceSection } from "@/components/layout/ExperienceSection";
+import { EducationSection } from "@/components/layout/EducationSection";
+import { SkillsSection } from "@/components/layout/SkillsSection";
+import { ProjectsSection } from "@/components/layout/ProjectsSection";
+import { ResourcesSection } from "@/components/layout/ResourcesSection";
+import { SocialMediaSection } from "@/components/layout/SocialMediaSection";
 import { Footer } from "@/components/layout/Footer";
+import { getPortfolioData } from "@/lib/portfolio-service";
 
 export default async function HomePage() {
   const cookieStore = await cookies();
@@ -22,6 +27,8 @@ export default async function HomePage() {
     }
   }
 
+  const portfolioData = await getPortfolioData();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-[#E11D48]/30">
       <Navbar initialUser={initialUser} initialAvatarSeed={avatarSeedCookie} />
@@ -29,8 +36,12 @@ export default async function HomePage() {
         <IntroHeroSection />
         <HeroSection />
         <LogoCloud />
-        <PhotoSection />
-        <FormSection />
+        <ExperienceSection experiences={portfolioData.experiences} />
+        <EducationSection education={portfolioData.education} />
+        <SkillsSection categories={portfolioData.skillCategories} />
+        <ProjectsSection projects={portfolioData.projects} />
+        <ResourcesSection resources={portfolioData.resources} />
+        <SocialMediaSection socials={portfolioData.socials} />
       </main>
       <Footer />
     </div>

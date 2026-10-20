@@ -1,0 +1,304 @@
+{
+  "name": "Vikas N Dhavande",
+  "title": "Product Engineer | Embedded Systems & Avionics Specialist",
+  "bio": "Specializing in aerospace avionics, embedded control subsystems, Hardware-in-the-Loop (HIL) automated test engineering, and IPC-standard electronics manufacturing.",
+  "email": "vikasndhavande@gmail.com",
+  "phone": "+91 9731999323",
+  "location": "Bangalore, Karnataka, India",
+  "experiences": [
+    {
+      "id": "exp-foxconn",
+      "role": "Product Engineer",
+      "company": "Foxconn Hon Hai Technology India",
+      "period": "June 2026 — Present",
+      "location": "Bangalore, India",
+      "type": "Full-time",
+      "description": "Contributing to the electronics development of a critical national aerospace project, engineering high-reliability avionics subsystems and control modules.",
+      "highlights": [
+        "Architecting instrumentation and designing Hardware-in-the-Loop (HIL) simulation environments to validate hardware behavior prior to deployment",
+        "Developing automated test scripts in MATLAB, LabVIEW, Python, and C++ based on rigorous R&D requirements to verify system performance and catch edge-case failures",
+        "Documenting detailed test results and failure patterns to build a research knowledge base, providing data-driven feedback to optimize design iterations"
+      ],
+      "technologies": ["MATLAB", "LabVIEW", "Python", "C++", "HIL Simulation", "Avionics Subsystems"],
+      "link": "https://www.foxconn.com"
+    },
+    {
+      "id": "exp-iisc",
+      "role": "Embedded Product Engineer",
+      "company": "Indian Institute of Science (IISc) Bengaluru",
+      "period": "September 2025 — June 2026",
+      "location": "Bangalore, India",
+      "type": "Full-time",
+      "description": "Contributed to the electronics design and embedded subsystems of a critical national aerospace project at India's premier research institution.",
+      "highlights": [
+        "Designed high-reliability avionics subsystems, sensor interfaces, and embedded control modules",
+        "Developed custom instrumentation and configured HIL simulation testbeds for hardware validation",
+        "Authored automated verification scripts in Python, LabVIEW, and C++ for system compliance"
+      ],
+      "technologies": ["C/C++", "Python", "LabVIEW", "Avionics", "HIL Testing", "Instrumentation"],
+      "link": "https://iisc.ac.in"
+    },
+    {
+      "id": "exp-bosch-lead",
+      "role": "Engineer — Team Lead Trainee",
+      "company": "Bosch Automotive Electronics India Pvt. Ltd.",
+      "period": "May 2023 — September 2025",
+      "location": "Bangalore, India",
+      "type": "Trainee",
+      "description": "Partnered with New Product Introduction (NPI) and Engineering Change Request (ECR) teams to validate automotive electronics, specifically ECUs, BCUs, and DCDC converters for mass production.",
+      "highlights": [
+        "Executed component-level testing using In-Circuit Test (ICT) and Flying Probe Test (FPT) systems",
+        "Analyzed and debugged complex test failures to identify root causes (RCA) and prevent defective units from advancing",
+        "Enforced strict quality compliance (IPC-A-610), segregating defective units and validating fixes to achieve 100% defect-free releases"
+      ],
+      "technologies": ["Automotive ECUs", "BCUs & DCDC Converters", "ICT & FPT Systems", "IPC-A-610", "Root Cause Analysis"],
+      "link": "https://www.bosch.in"
+    },
+    {
+      "id": "exp-bosch-apprentice",
+      "role": "Apprentice Engineer",
+      "company": "Bosch Automotive Electronics India Pvt. Ltd.",
+      "period": "December 2022 — May 2023",
+      "location": "Bangalore, India",
+      "type": "Apprentice",
+      "description": "Coordinated Engineering Change Requests (ECRs) across cross-functional departments, ensuring smooth implementation without disrupting production.",
+      "highlights": [
+        "Interpreted complex Engineering Drawings and BOMs to plan execution trials and validate test setups for new product variants",
+        "Utilized SAP-PP and SAP-MM modules to plan trial runs, managing material availability and execution timelines",
+        "Maintained audit-ready technical documentation of ECR activities and plant compliance"
+      ],
+      "technologies": ["SAP-PP", "SAP-MM", "Engineering Drawings", "BOM Analysis", "ECR Management"],
+      "link": "https://www.bosch.in"
+    },
+    {
+      "id": "exp-wistron",
+      "role": "Assistant Rework Engineer",
+      "company": "Wistron Infocomm Manufacturing (India)",
+      "period": "August 2022 — December 2022",
+      "location": "Bangalore / Kolar, India",
+      "type": "Full-time",
+      "description": "Operated high-speed SMT lines for Main Logic Board (MLB) manufacturing, a critical component for high-performance consumer electronics.",
+      "highlights": [
+        "Managed and calibrated Pick and Place, Screen Printer, Solder Paste Inspection (SPI), and Automated Optical Inspection (AOI) machines",
+        "Monitored real-time production telemetry to detect solder defects and component misalignments",
+        "Maintained strict global IPC manufacturing standards for high-throughput SMT lines"
+      ],
+      "technologies": ["SMT Line Operations", "AOI & SPI Inspection", "Pick and Place", "MLB Manufacturing", "IPC Standards"],
+      "link": "https://www.wistron.com"
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-btech",
+      "degree": "Bachelor of Technology (B.Tech) in Electronics & Communication",
+      "institution": "Mangalayatan University",
+      "period": "Pursuing (Expected 2028)",
+      "location": "India",
+      "details": "Specializing in embedded systems, communication networks, avionics hardware, and digital signal processing."
+    },
+    {
+      "id": "edu-diploma",
+      "degree": "Diploma in Electrical and Electronics Engineering",
+      "institution": "MVP - Rural Polytechnic",
+      "period": "Graduated August 2022",
+      "location": "Karnataka, India",
+      "details": "Core foundations in electrical circuit design, power electronics, digital logic, and industrial instrumentation."
+    },
+    {
+      "id": "edu-iti",
+      "degree": "Industrial Training Institute (ITI) in Electrician",
+      "institution": "Karnataka Government DITE",
+      "period": "Completed July 2019",
+      "location": "Karnataka, India",
+      "details": "Hands-on electrical wiring, industrial maintenance, power distribution, and equipment troubleshooting."
+    }
+  ],
+  "skillCategories": [
+    {
+      "id": "skills-embedded",
+      "category": "Embedded & Avionics Systems",
+      "description": "Mission-critical hardware design, avionics controllers, and low-level communication protocols.",
+      "skills": [
+        { "name": "Avionics Subsystems & Control Modules", "level": "Advanced", "highlight": true },
+        { "name": "Hardware-in-the-Loop (HIL) Simulation", "level": "Advanced", "highlight": true },
+        { "name": "STM32 & Microcontroller Architecture", "level": "Advanced", "highlight": true },
+        { "name": "PCB Design & Hardware Validation", "level": "Advanced", "highlight": true },
+        { "name": "Protocols: UART / I2C / SPI / CAN", "level": "Advanced" },
+        { "name": "Mobility & Automotive Electronics", "level": "Advanced" }
+      ]
+    },
+    {
+      "id": "skills-languages",
+      "category": "Languages & Automated Testing",
+      "description": "Firmware languages, scientific simulation, and test automation frameworks.",
+      "skills": [
+        { "name": "C / C++ (OOP & Bare Metal)", "level": "Advanced", "highlight": true },
+        { "name": "Python (Automation & Telemetry)", "level": "Advanced", "highlight": true },
+        { "name": "LabVIEW (National Instruments)", "level": "Advanced", "highlight": true },
+        { "name": "MATLAB (Control Systems & Modeling)", "level": "Proficient" },
+        { "name": "Node.js & Scripting", "level": "Proficient" },
+        { "name": "Cloud Computing Fundamentals", "level": "Proficient" }
+      ]
+    },
+    {
+      "id": "skills-manufacturing",
+      "category": "Manufacturing & Quality Assurance",
+      "description": "High-reliability inspection, aerospace/automotive standards, and root cause analysis.",
+      "skills": [
+        { "name": "IPC-A-610 Workmanship Standards", "level": "Advanced", "highlight": true },
+        { "name": "In-Circuit Testing (ICT) & Flying Probe (FPT)", "level": "Advanced", "highlight": true },
+        { "name": "Root Cause Analysis (RCA) & Debugging", "level": "Advanced", "highlight": true },
+        { "name": "SMT Process & Line Optimization", "level": "Advanced" },
+        { "name": "Automated Optical Inspection (AOI / SPI)", "level": "Advanced" },
+        { "name": "Defect Segregation & Quality Gates", "level": "Advanced" }
+      ]
+    },
+    {
+      "id": "skills-tools",
+      "category": "Tools, Platforms & Management",
+      "description": "Enterprise resource systems, robotic frameworks, and engineering management.",
+      "skills": [
+        { "name": "SAP (PP & MM Modules)", "level": "Advanced", "highlight": true },
+        { "name": "ROS (Robot Operating System)", "level": "Proficient" },
+        { "name": "Git & GitHub Version Control", "level": "Advanced" },
+        { "name": "VS Code & Embedded Toolchains", "level": "Advanced" },
+        { "name": "Engineering Change Requests (ECR)", "level": "Advanced" },
+        { "name": "Technical Documentation & Audits", "level": "Advanced" }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-avionics-hil",
+      "title": "Aerospace Avionics & HIL Simulation Testbed",
+      "tagline": "Hardware-in-the-Loop simulation environment for mission-critical flight avionics validation.",
+      "description": "Engineered real-time sensor instrumentation and HIL simulation rigs to stress-test avionics control modules under extreme operational flight envelopes before physical deployment.",
+      "year": "2026",
+      "category": "Aerospace & Avionics",
+      "tags": ["MATLAB", "LabVIEW", "Python", "C++", "HIL Simulation", "Avionics"],
+      "liveUrl": "https://iisc.ac.in",
+      "githubUrl": "https://github.com",
+      "featured": true
+    },
+    {
+      "id": "proj-ecu-bcu",
+      "title": "Automotive ECU / BCU Validation & Testing Suite",
+      "tagline": "Automated ICT and flying probe test framework for automotive body control and power electronics.",
+      "description": "Partnered on New Product Introduction (NPI) to validate Engine Control Units, Body Control Units, and DCDC converters. Formulated test scripts and RCA frameworks eliminating production-line escapes.",
+      "year": "2025",
+      "category": "Automotive Electronics",
+      "tags": ["In-Circuit Test (ICT)", "Flying Probe Test", "IPC-A-610", "Automotive ECUs", "RCA"],
+      "liveUrl": "https://www.bosch.in",
+      "githubUrl": "https://github.com",
+      "featured": true
+    },
+    {
+      "id": "proj-smt-aoi",
+      "title": "High-Speed SMT Quality & Calibration System",
+      "tagline": "Precision calibration and automated optical inspection for Main Logic Board manufacturing.",
+      "description": "Managed high-throughput SMT lines, calibrating Pick and Place, Screen Printers, Solder Paste Inspection (SPI), and AOI machines to uphold zero-defect standards for consumer electronics MLBs.",
+      "year": "2022",
+      "category": "Electronics Manufacturing",
+      "tags": ["SMT Lines", "AOI Inspection", "SPI Calibration", "Pick & Place", "IPC Standards"],
+      "liveUrl": "https://www.wistron.com",
+      "githubUrl": "https://github.com",
+      "featured": false
+    },
+    {
+      "id": "proj-stm32-ros",
+      "title": "STM32 Real-Time Sensor Telemetry & ROS Node",
+      "tagline": "Embedded microcontroller sensor acquisition bridge communicating over UART/CAN to ROS.",
+      "description": "Designed low-latency firmware on STM32 microcontrollers to interface multiple digital sensor buses (I2C/SPI) and package telemetry packets for ROS-based autonomous vehicle control stacks.",
+      "year": "2024",
+      "category": "Embedded Systems",
+      "tags": ["STM32", "C++", "ROS", "UART / SPI / I2C", "CAN Protocol"],
+      "liveUrl": "https://github.com",
+      "githubUrl": "https://github.com",
+      "featured": false
+    }
+  ],
+  "resources": [
+    {
+      "id": "res-hil-guidelines",
+      "title": "Hardware-in-the-Loop (HIL) Avionics Validation Blueprint",
+      "type": "Architecture",
+      "description": "Technical reference guide outlining signal conditioning, fault-injection matrices, and automated LabVIEW/Python test architectures for aerospace avionics.",
+      "url": "https://github.com",
+      "formatBadge": "Technical Guide",
+      "tag": "Aerospace & Test"
+    },
+    {
+      "id": "res-ipc-cheatsheet",
+      "title": "IPC-A-610 Electronics Assembly & SMT Inspection Cheatsheet",
+      "type": "Cheatsheet",
+      "description": "Quick-reference manual for solder joint criteria, component alignment tolerances, and defect classification for automotive-grade PCBA lines.",
+      "url": "https://github.com",
+      "formatBadge": "PDF / Cheatsheet",
+      "tag": "Manufacturing Standards"
+    },
+    {
+      "id": "res-ecu-testing",
+      "title": "Automotive In-Circuit Testing (ICT) Root Cause Analysis Guide",
+      "type": "Guide",
+      "description": "Systematic debugging playbook for diagnosing non-conforming ECU and BCU units, test pin contact resistance, and boundary scan errors.",
+      "url": "https://github.com",
+      "formatBadge": "Engineering Guide",
+      "tag": "Automotive Quality"
+    },
+    {
+      "id": "res-stm32-protocols",
+      "title": "Embedded Microcontroller Protocols (CAN, UART, SPI, I2C) Reference",
+      "type": "Template",
+      "description": "Production-grade C/C++ driver templates and timing diagrams for STM32 embedded peripheral buses with DMA and interrupt handling.",
+      "url": "https://github.com",
+      "formatBadge": "Code & Schematics",
+      "tag": "Embedded Firmware"
+    }
+  ],
+  "socials": [
+    {
+      "id": "soc-email",
+      "platform": "Direct Email",
+      "handle": "vikasndhavande@gmail.com",
+      "url": "mailto:vikasndhavande@gmail.com",
+      "description": "Primary channel for professional inquiries, aerospace collaborations, and consulting.",
+      "iconName": "mail",
+      "isPrimary": true
+    },
+    {
+      "id": "soc-phone",
+      "platform": "Phone / WhatsApp",
+      "handle": "+91 9731999323",
+      "url": "tel:+919731999323",
+      "description": "Direct mobile contact for immediate technical queries and project discussions.",
+      "iconName": "discord",
+      "isPrimary": true
+    },
+    {
+      "id": "soc-linkedin",
+      "platform": "LinkedIn",
+      "handle": "in/vikas-n-dhavande",
+      "url": "https://linkedin.com",
+      "description": "Professional engineering network, research posts, and industry milestones.",
+      "iconName": "linkedin",
+      "isPrimary": true
+    },
+    {
+      "id": "soc-github",
+      "platform": "GitHub",
+      "handle": "github.com/vikas",
+      "url": "https://github.com",
+      "description": "Firmware repositories, automated test scripts (Python/C++), and open hardware modules.",
+      "iconName": "github",
+      "isPrimary": true
+    },
+    {
+      "id": "soc-twitter",
+      "platform": "X / Twitter",
+      "handle": "@vikas_dhavande",
+      "url": "https://twitter.com",
+      "description": "Updates on aerospace avionics, embedded innovations, and electronics manufacturing.",
+      "iconName": "twitter"
+    }
+  ]
+}

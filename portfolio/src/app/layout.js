@@ -1,10 +1,11 @@
-﻿import "./app.css";
+import "./app.css";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
-  title: "Portfolio",
+  title: "Vikas | Portfolio",
   description: "Personal portfolio showcasing selected work and experience.",
 };
 
@@ -69,6 +70,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
         <ThemeProvider initialTheme={theme}>
+          <InitialWebLoader />
           {children}
         </ThemeProvider>
         <SpeedInsights />

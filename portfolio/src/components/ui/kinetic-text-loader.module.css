@@ -69,14 +69,17 @@
 }
 
 .dot {
+  will-change: transform;
   animation: dotMove 1800ms cubic-bezier(0.25, 0.25, 0.75, 0.75) infinite;
 }
 
 .letterStretch {
+  will-change: transform;
   animation: letterStretch 1800ms cubic-bezier(0.25, 0.23, 0.73, 0.75) infinite;
 }
 
 .letterBounce {
+  will-change: transform;
   animation: letterBounce 1800ms cubic-bezier(0.25, 0.25, 0.75, 0.75) infinite;
 }
 

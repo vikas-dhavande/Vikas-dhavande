@@ -7,19 +7,31 @@ import styles from "./kinetic-text-loader.module.css";
 export interface KineticTextLoaderProps
   extends React.HTMLAttributes<HTMLDivElement> {
   text?: string;
+  subtitle?: string;
+  size?: "sm" | "md" | "lg";
+  showProgressBar?: boolean;
 }
 
 export function KineticTextLoader({
   className,
   text = "Loading",
+  subtitle,
+  size = "md",
+  showProgressBar = true,
   ...props
 }: KineticTextLoaderProps) {
   const letters = text.split("");
 
+  const scaleClasses = {
+    sm: "scale-60 sm:scale-75",
+    md: "scale-75 md:scale-90 lg:scale-100",
+    lg: "scale-90 md:scale-105 lg:scale-120",
+  }[size];
+
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center font-light",
+        "relative flex flex-col items-center justify-center font-light select-none transition-all duration-300",
         className,
       )}
       style={{ fontFamily: "'Roboto', sans-serif" }}
@@ -27,16 +39,21 @@ export function KineticTextLoader({
       aria-busy="true"
       {...props}
     >
-      <span className="sr-only">{text}</span>
-      <div className="relative scale-75 md:scale-90 lg:scale-100" aria-hidden="true">
+      <span className="sr-only">{text} {subtitle ? `- ${subtitle}` : ""}</span>
+      
+      {/* Kinetic Animated Typography */}
+      <div className={cn("relative transition-transform duration-300", scaleClasses)} aria-hidden="true">
+        {/* Kinetic Orbital Dot */}
         <div
           className={cn(
-            "absolute z-10 top-[40px] left-[85px] w-[6px] h-[6px] bg-neutral-800 dark:bg-neutral-200 rounded-full",
+            "absolute z-10 top-[40px] left-[85px] w-[7px] h-[7px] rounded-full",
+            "bg-foreground shadow-[0_0_10px_rgba(255,109,27,0.5)]",
+            "dark:shadow-[0_0_12px_rgba(225,29,72,0.8)]",
             styles.dot,
           )}
         />
 
-        <p className="relative m-0 whitespace-nowrap text-[3.75rem] text-neutral-800 dark:text-neutral-200">
+        <p className="relative m-0 whitespace-nowrap text-[3.75rem] font-light tracking-[2px] text-foreground transition-colors duration-200">
           {letters.map((char, index) => {
             if (index === 0 && char.toUpperCase() === "L") {
               return (
@@ -74,6 +91,20 @@ export function KineticTextLoader({
           })}
         </p>
       </div>
+
+      {/* Optional Subtitle status */}
+      {subtitle && (
+        <p className="mt-4 text-xs tracking-widest font-mono uppercase text-muted-foreground animate-pulse">
+          {subtitle}
+        </p>
+      )}
+
+      {/* Progress Bar Line */}
+      {showProgressBar && (
+        <div className="mt-5 w-44 h-0.5 rounded-full overflow-hidden bg-foreground/10 relative">
+          <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] rounded-full animate-marquee" />
+        </div>
+      )}
     </div>
   );
 }
