@@ -12,7 +12,7 @@ export function IntroHeroSection() {
       <WaveGridBackground
         className="absolute inset-0 z-0"
         colorBase="#ffffff"
-        colorHigh="#0055ff"
+        colorHigh="#1100ff"
       />
       <div
         aria-hidden="true"
