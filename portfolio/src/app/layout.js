@@ -3,8 +3,8 @@ import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 
 export const metadata = {
-  title: "Webpro — Next Generation Web Application",
-  description: "Modern web application crafted with high aesthetic fidelity and instantaneous performance.",
+  title: "Portfolio",
+  description: "Personal portfolio showcasing selected work and experience.",
 };
 
 /**
@@ -62,7 +62,7 @@ export default async function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Roboto:wght@300&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -49,7 +49,7 @@ export function HeroSection() {
               className="h-7 w-fit rounded-full px-3.5 py-1 text-xs font-normal border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] text-[#F4F4F5] backdrop-blur-md"
             >
               <span className="flex h-1.5 w-1.5 rounded-full bg-[#E11D48] mr-1.5 animate-pulse" />
-              Shadcnspace × Webpro Studio
+              Shadcnspace × Portfolio
             </Badge>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#F4F4F5] leading-[1.12]">

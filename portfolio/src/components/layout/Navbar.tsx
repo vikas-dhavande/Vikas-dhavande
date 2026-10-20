@@ -100,11 +100,11 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
           <Link href="/" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm transition-transform duration-200 group-hover:scale-105">
               <div className="h-full w-full rounded-full bg-[#000000] flex items-center justify-center">
-                <span className="font-mono text-sm font-black text-white">W</span>
+                <span className="font-mono text-sm font-black text-white">P</span>
               </div>
             </div>
             <span className="text-base font-bold tracking-tight text-white group-hover:text-white/90">
-              Webpro
+              Portfolio
             </span>
           </Link>
 

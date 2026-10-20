@@ -11,10 +11,10 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm">
                 <div className="h-full w-full rounded-full bg-[#000000] flex items-center justify-center">
-                  <span className="font-mono text-xs font-black text-white">W</span>
+                  <span className="font-mono text-xs font-black text-white">P</span>
                 </div>
               </div>
-              <span className="text-base font-bold text-white">Webpro</span>
+              <span className="text-base font-bold text-white">Portfolio</span>
             </Link>
             <p className="mt-4 max-w-sm text-xs text-[#A1A1AA] leading-relaxed">
               Crafted for exceptional speed and design fidelity. Designed with modern dark palettes, partial prerendering,
@@ -116,7 +116,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-[rgba(39,39,42,0.6)] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <p>© {new Date().getFullYear()} Webpro Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Portfolio. All rights reserved.</p>
           <div className="flex items-center gap-6 text-[#A1A1AA]">
             <a href="#twitter" className="hover:text-white transition-colors">
               Twitter / X
