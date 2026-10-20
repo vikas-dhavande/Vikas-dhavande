@@ -1,9 +1,12 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
+import { Blobatar } from "@blobatar/react";
 import { account } from "@/lib/appwrite";
+import { clearCookieAction } from "@/app/actions";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
+import { AuthModal } from "@/components/ui/AuthModal";
 
 interface AppwriteUser {
   $id: string;
@@ -15,43 +18,84 @@ interface AppwriteUser {
   };
 }
 
-export function Navbar() {
-  const [user, setUser] = useState<AppwriteUser | null>(null);
-  const [loading, setLoading] = useState(true);
+interface NavbarProps {
+  initialUser?: AppwriteUser | null;
+  initialAvatarSeed?: string | null;
+}
+
+export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarProps) {
+  const [user, setUser] = useState<AppwriteUser | null>(initialUser);
+
+  // Avatar seed: cookie (SSR) > localStorage > null
+  const [avatarSeed, setAvatarSeed] = useState<string | null>(() => {
+    if (initialAvatarSeed) return initialAvatarSeed;
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("avatar_seed");
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(!initialUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    if (initialUser) {
+      setLoading(false);
+      return;
+    }
+    account
+      .get()
+      .then((u) => {
+        setUser(u as AppwriteUser);
+        // Sync avatar seed from localStorage if not already set via cookie
+        const stored = localStorage.getItem("avatar_seed");
+        if (stored && !avatarSeed) setAvatarSeed(stored);
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const refreshUser = () => {
     account
       .get()
       .then((u) => setUser(u as AppwriteUser))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => setUser(null));
+  };
+
+  const handleAuthSuccess = (userName: string) => {
+    setAvatarSeed(userName);
+    refreshUser();
+  };
 
   const handleLogout = () => {
     startTransition(async () => {
       try {
         await account.deleteSession("current");
-        setUser(null);
-        setDropdownOpen(false);
       } catch {
-        setUser(null);
-        setDropdownOpen(false);
+        // Session may already be gone; clear local state anyway
       }
+      // Clear avatar seed from both stores
+      try {
+        localStorage.removeItem("avatar_seed");
+      } catch {}
+      clearCookieAction("avatar_seed").catch(() => {});
+
+      setUser(null);
+      setAvatarSeed(null);
+      setDropdownOpen(false);
     });
   };
 
-  const avatarUrl =
-    user?.prefs?.avatar ??
-    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name ?? "U")}`;
   const roleName = user?.prefs?.role ?? "Member";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[rgba(39,39,42,0.8)] bg-[#000000]/80 backdrop-blur-xl">
       <div className="flex w-full items-center justify-between px-4 lg:px-8 h-16">
-        {/* Brand / Logo */}
+
+        {/* ── Brand / Logo ── */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm transition-transform duration-200 group-hover:scale-105">
@@ -64,34 +108,25 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="#explore" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
-              Explore
-            </Link>
-            <Link href="#features" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
-              Features
-            </Link>
-            <Link href="#showcase" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
-              Showcase
-            </Link>
-            <Link href="#updates" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">
-              Updates
-            </Link>
+            <Link href="#explore" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Explore</Link>
+            <Link href="#features" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Features</Link>
+            <Link href="#showcase" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Showcase</Link>
+            <Link href="#updates" className="text-[#A1A1AA] hover:text-white transition-colors duration-150">Updates</Link>
           </nav>
         </div>
 
-        {/* Right Section */}
+        {/* ── Right Section ── */}
         <div className="flex items-center gap-3">
 
-          {/* ── Theme Toggle (always visible, desktop + mobile) ── */}
+          {/* Theme Toggle — always visible */}
           <ThemeToggleButton />
 
           {loading ? (
-            /* Loading skeleton */
             <div className="h-8 w-20 rounded-full bg-[rgba(255,255,255,0.06)] animate-pulse" />
           ) : user ? (
-            /* Logged-In: Avatar + Dropdown */
+            /* ── Logged-In: Blobatar avatar + dropdown ── */
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -101,12 +136,14 @@ export function Navbar() {
                   <span className="text-xs font-semibold text-white">{user.name}</span>
                   <span className="text-[10px] text-[#A1A1AA]">{roleName}</span>
                 </div>
-                <div className="relative">
-                  <img
-                    src={avatarUrl}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full object-cover border border-[rgba(255,255,255,0.2)]"
+                {/* Blobatar — deterministic avatar seeded by user name, animates on hover */}
+                <div className="relative h-8 w-8 rounded-full overflow-hidden border border-[rgba(255,255,255,0.2)] flex-shrink-0">
+                  <Blobatar
+                    name={avatarSeed ?? user.name}
+                    animate="hover"
+                    style={{ width: "100%", height: "100%" }}
                   />
+                  {/* Online indicator */}
                   <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-[#34D399] border-2 border-[#000000]" />
                 </div>
               </button>
@@ -114,9 +151,19 @@ export function Navbar() {
               {/* User Dropdown */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[rgba(39,39,42,0.8)] bg-[#0D0D0F] p-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 z-50">
-                  <div className="px-3 py-2 border-b border-[rgba(39,39,42,0.6)] mb-1">
-                    <p className="text-xs font-semibold text-white">{user.name}</p>
-                    <p className="text-[11px] text-[#71717A] truncate">{user.email}</p>
+                  {/* User info header */}
+                  <div className="px-3 py-2 border-b border-[rgba(39,39,42,0.6)] mb-1 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full overflow-hidden border border-[rgba(255,255,255,0.1)] flex-shrink-0">
+                      <Blobatar
+                        name={avatarSeed ?? user.name}
+                        animate="hover"
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                      <p className="text-[11px] text-[#71717A] truncate">{user.email}</p>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-0.5 text-xs text-[#A1A1AA]">
                     <Link
@@ -154,17 +201,24 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            /* Logged-Out */
+            /* ── Logged-Out: Auth Modal triggers ── */
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/login" className="btn-pill-primary">
-                Login
-              </Link>
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center justify-center rounded-full border border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs font-medium text-white hover:bg-[rgba(255,255,255,0.1)] transition-all cursor-pointer"
-              >
-                Get Started
-              </Link>
+              <AuthModal
+                onAuthSuccess={handleAuthSuccess}
+                trigger={
+                  <button className="btn-pill-primary">
+                    Login
+                  </button>
+                }
+              />
+              <AuthModal
+                onAuthSuccess={handleAuthSuccess}
+                trigger={
+                  <button className="hidden sm:inline-flex items-center justify-center rounded-full border border-[rgba(39,39,42,0.9)] bg-[rgba(255,255,255,0.06)] px-4 py-2 text-xs font-medium text-white hover:bg-[rgba(255,255,255,0.1)] transition-all cursor-pointer">
+                    Get Started
+                  </button>
+                }
+              />
             </div>
           )}
 
@@ -184,14 +238,14 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* ── Mobile Drawer ── */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[rgba(39,39,42,0.8)] bg-[#000000] px-4 py-4 space-y-3">
           <nav className="flex flex-col gap-2 text-sm text-[#A1A1AA]">
-            <Link href="#explore" className="py-2 hover:text-white">Explore</Link>
-            <Link href="#features" className="py-2 hover:text-white">Features</Link>
-            <Link href="#showcase" className="py-2 hover:text-white">Showcase</Link>
-            <Link href="#updates" className="py-2 hover:text-white">Updates</Link>
+            <Link href="#explore" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Explore</Link>
+            <Link href="#features" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Features</Link>
+            <Link href="#showcase" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Showcase</Link>
+            <Link href="#updates" className="py-2 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Updates</Link>
           </nav>
           <div className="pt-2 border-t border-[rgba(39,39,42,0.6)]">
             {user ? (
@@ -203,12 +257,14 @@ export function Navbar() {
                 {isPending ? "Signing out…" : "Sign Out"}
               </button>
             ) : (
-              <Link
-                href="/login"
-                className="block w-full text-center py-2 text-xs rounded-full border border-[rgba(39,39,42,0.8)] bg-[rgba(255,255,255,0.05)] text-white"
-              >
-                Login
-              </Link>
+              <AuthModal
+                onAuthSuccess={handleAuthSuccess}
+                trigger={
+                  <button className="block w-full text-center py-2 text-xs rounded-full border border-[rgba(39,39,42,0.8)] bg-[rgba(255,255,255,0.05)] text-white cursor-pointer">
+                    Login
+                  </button>
+                }
+              />
             )}
           </div>
         </div>

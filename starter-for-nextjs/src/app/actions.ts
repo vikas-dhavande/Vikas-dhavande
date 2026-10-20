@@ -36,3 +36,14 @@ export async function setCookiePreferenceAction(key: string, value: string) {
     return { success: false, message: (error as Error).message };
   }
 }
+
+export async function clearCookieAction(key: string) {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete(key);
+    revalidatePath("/");
+    return { success: true, key };
+  } catch (error) {
+    return { success: false, message: (error as Error).message };
+  }
+}

@@ -58,11 +58,7 @@ export const LogoCloud = () => {
           </div>
         ))}
       </Marquee>
-
-      {/* Left gradient fade */}
       <div className="pointer-events-none absolute inset-y-0 left-0 w-24 sm:w-36 bg-gradient-to-r from-[#000000] to-transparent z-10" />
-
-      {/* Right gradient fade */}
       <div className="pointer-events-none absolute inset-y-0 right-0 w-24 sm:w-36 bg-gradient-to-l from-[#000000] to-transparent z-10" />
     </div>
   );

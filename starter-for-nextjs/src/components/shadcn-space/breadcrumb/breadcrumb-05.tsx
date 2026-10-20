@@ -1,7 +1,7 @@
 import { ChevronDownIcon, ChevronsLeft, Command, HomeIcon, TriangleAlert } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Breadcrumb,BreadcrumbItem,BreadcrumbLink,BreadcrumbList,BreadcrumbPage,BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { DropdownMenu,DropdownMenuContent,DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 const BreadcrumbWithDropdownDemo = () => {
   return (
@@ -26,17 +26,17 @@ const BreadcrumbWithDropdownDemo = () => {
         <BreadcrumbSeparator> / </BreadcrumbSeparator>
         <BreadcrumbItem>
           <BreadcrumbPage>
-            <DropdownMenu>
-              <DropdownMenuTrigger className='flex items-center gap-1 cursor-pointer'>
+            <DropdownMenuTrigger>
+              <button className='flex items-center gap-1 cursor-pointer text-sm'>
                 Components
                 <ChevronDownIcon className='size-4' />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='start'>
-                <DropdownMenuItem className="cursor-pointer"><TriangleAlert size={16}/>Alert</DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"><Command size={16}/>Buttons</DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"><ChevronsLeft size={16}/>Breadcrumb</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </button>
+              <DropdownMenu>
+                <DropdownMenuItem><TriangleAlert size={16} />Alert</DropdownMenuItem>
+                <DropdownMenuItem><Command size={16} />Buttons</DropdownMenuItem>
+                <DropdownMenuItem><ChevronsLeft size={16} />Breadcrumb</DropdownMenuItem>
+              </DropdownMenu>
+            </DropdownMenuTrigger>
           </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
