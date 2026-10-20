@@ -52,9 +52,9 @@ export function HeroSection() {
               Shadcnspace × Portfolio
             </Badge>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#F4F4F5] leading-[1.12]">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#F4F4F5] leading-[1.12]">
               Find a place that truly feels like home, where every moment matters.
-            </h1>
+            </h2>
           </div>
 
           {/* Right Column: Narrative Body & Dual Action Buttons */}
