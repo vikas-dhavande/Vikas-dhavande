@@ -1,6 +1,7 @@
 ﻿import "./app.css";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
   title: "Portfolio",
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }) {
         <ThemeProvider initialTheme={theme}>
           {children}
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
