@@ -17,10 +17,16 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         // Look for custom config document or merge documents
         const configDoc = response.documents[0] as unknown as Partial<PortfolioData>;
         return {
+          ...(defaultPortfolioData as unknown as PortfolioData),
+          ...configDoc,
           name: configDoc.name || defaultPortfolioData.name,
           title: configDoc.title || defaultPortfolioData.title,
           bio: configDoc.bio || defaultPortfolioData.bio,
+          email: configDoc.email || defaultPortfolioData.email,
+          phone: configDoc.phone || defaultPortfolioData.phone,
+          location: configDoc.location || defaultPortfolioData.location,
           experiences: (configDoc.experiences as any) || (defaultPortfolioData.experiences as any),
+          education: (configDoc.education as any) || (defaultPortfolioData.education as any),
           skillCategories: (configDoc.skillCategories as any) || (defaultPortfolioData.skillCategories as any),
           projects: (configDoc.projects as any) || (defaultPortfolioData.projects as any),
           resources: (configDoc.resources as any) || (defaultPortfolioData.resources as any),
