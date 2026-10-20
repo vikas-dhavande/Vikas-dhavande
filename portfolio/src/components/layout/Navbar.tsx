@@ -54,6 +54,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       setLoading(false);
       return;
     }
+
     account
       .get()
       .then((u) => {
