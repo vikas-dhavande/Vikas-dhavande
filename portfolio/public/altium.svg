@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" rx="20" fill="#18181B"/>
+  <!-- Altium Designer Geometric Triangular "A" -->
+  <path d="M50 16L22 72H36L50 44L64 72H78L50 16Z" fill="#A78BFA"/>
+  <path d="M50 32L34 64H66L50 32Z" fill="#F59E0B"/>
+  <path d="M50 44L41 62H59L50 44Z" fill="#D97706"/>
+  <!-- Altium wordmark -->
+  <text x="50" y="88" text-anchor="middle" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="bold" letterSpacing="1.5">ALTIUM</text>
+</svg>

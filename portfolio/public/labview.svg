@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" width="100" height="50">
+  <!-- NI LabVIEW Official Colors (Yellow and Dark Blue) -->
+  <rect width="100" height="50" rx="8" fill="#FBBF24"/>
+  <rect x="8" y="10" width="28" height="30" rx="4" fill="#0284C7"/>
+  <text x="22" y="32" text-anchor="middle" fill="#FFFFFF" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="900">NI</text>
+  <text x="66" y="27" text-anchor="middle" fill="#0F172A" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="bold" letterSpacing="0.5">LabVIEW</text>
+  <text x="66" y="40" text-anchor="middle" fill="#B45309" font-family="monospace" font-size="9" font-weight="bold" letterSpacing="1">SYSTEMS</text>
+</svg>

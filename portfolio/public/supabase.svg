@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 113" width="109" height="113" fill="none">
+  <path d="M63.708 110.284c-3.562 4.417-10.742 2.115-11.107-3.551L48.24 39.467h47.781c8.583 0 13.435 9.878 8.163 16.417l-40.476 54.4z" fill="url(#supabase_grad1)"/>
+  <path d="M63.708 110.284c-3.562 4.417-10.742 2.115-11.107-3.551L48.24 39.467h47.781c8.583 0 13.435 9.878 8.163 16.417l-40.476 54.4z" fill="#3ECF8E" fill-opacity=".2"/>
+  <path d="M45.298 2.716c3.562-4.417 10.742-2.115 11.107 3.551l3.666 67.266H12.29c-8.583 0-13.435-9.878-8.163-16.417l41.17-54.4z" fill="url(#supabase_grad2)"/>
+  <defs>
+    <linearGradient id="supabase_grad1" x1="53.5" y1="46" x2="89" y2="114" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#249361"/>
+      <stop offset="1" stop-color="#3ECF8E"/>
+    </linearGradient>
+    <linearGradient id="supabase_grad2" x1="16" y1="5.5" x2="55.5" y2="73" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3ECF8E"/>
+      <stop offset="1" stop-color="#249361"/>
+    </linearGradient>
+  </defs>
+</svg>

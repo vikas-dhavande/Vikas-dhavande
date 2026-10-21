@@ -4,7 +4,7 @@ export interface ExperienceItem {
   company: string;
   period: string;
   location: string;
-  type?: "Full-time" | "Contract" | "Remote" | "Hybrid" | "Freelance" | "Apprentice" | "Trainee";
+  type?: "Full-time" | "Part-time" | "Contract" | "Remote" | "Hybrid" | "Freelance" | "Apprentice" | "Trainee";
   description: string;
   highlights: string[];
   technologies: string[];
