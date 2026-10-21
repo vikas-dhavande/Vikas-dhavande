@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 // Paste your YouTube link here
-const YOUTUBE_URL = "https://youtu.be/uX6jCay0c6I?si=CwOxjFOBzLsTF7-w&t=54";
+const YOUTUBE_URL = "https://youtu.be/0qdy6c0vzJg?si=5jJU7Xg1tgZIpTuZ";
 
 const getYouTubeId = (url: string) =>
   url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)?.[1] ?? "";

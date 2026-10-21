@@ -8,6 +8,14 @@ import { Analytics } from "@vercel/analytics/react";
 export const metadata = {
   title: "Vikas | Portfolio",
   description: "Personal portfolio showcasing selected work and experience.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 /**
@@ -68,6 +76,7 @@ export default async function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Roboto:wght@300&display=swap"
           rel="stylesheet"
         />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
         <ThemeProvider initialTheme={theme}>

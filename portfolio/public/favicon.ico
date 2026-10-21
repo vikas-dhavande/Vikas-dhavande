@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="vAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E11D48" />
+      <stop offset="100%" stop-color="#FF6D1B" />
+    </linearGradient>
+    <linearGradient id="vBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181B" />
+      <stop offset="100%" stop-color="#09090B" />
+    </linearGradient>
+  </defs>
+  <!-- Elevated Rounded Squircle Badge -->
+  <rect width="64" height="64" rx="16" fill="url(#vBg)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  
+  <!-- Left Wing of "V" in Crisp White -->
+  <path d="M15 16H23.5L32 38L28.5 48L15 16Z" fill="#FFFFFF"/>
+  
+  <!-- Right Wing of "V" in Signature Ruby Gradient -->
+  <path d="M49 16H40.5L32 38L35.5 48L49 16Z" fill="url(#vAccent)"/>
+  
+  <!-- Central Precision Apex -->
+  <circle cx="32" cy="46" r="3" fill="#FFFFFF"/>
+</svg>
