@@ -55,27 +55,33 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       return;
     }
 
-    account
-      .get()
-      .then((u) => {
-        setUser(u as AppwriteUser);
-        // Sync avatar seed from localStorage if not already set via cookie
-        const stored = localStorage.getItem("avatar_seed");
-        if (stored && !avatarSeed) setAvatarSeed(stored);
-      })
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-
-    // Auto-sync session when tab receives focus (e.g. after popup or external auth)
-    const handleFocus = () => {
+    if (account && typeof account.get === "function") {
       account
         .get()
         .then((u) => {
           setUser(u as AppwriteUser);
+          // Sync avatar seed from localStorage if not already set via cookie
           const stored = localStorage.getItem("avatar_seed");
-          if (stored) setAvatarSeed(stored);
+          if (stored && !avatarSeed) setAvatarSeed(stored);
         })
-        .catch(() => {});
+        .catch(() => setUser(null))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+
+    // Auto-sync session when tab receives focus (e.g. after popup or external auth)
+    const handleFocus = () => {
+      if (account && typeof account.get === "function") {
+        account
+          .get()
+          .then((u) => {
+            setUser(u as AppwriteUser);
+            const stored = localStorage.getItem("avatar_seed");
+            if (stored) setAvatarSeed(stored);
+          })
+          .catch(() => {});
+      }
     };
 
     window.addEventListener("focus", handleFocus);
@@ -84,10 +90,12 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   }, []);
 
   const refreshUser = () => {
-    account
-      .get()
-      .then((u) => setUser(u as AppwriteUser))
-      .catch(() => setUser(null));
+    if (account && typeof account.get === "function") {
+      account
+        .get()
+        .then((u) => setUser(u as AppwriteUser))
+        .catch(() => setUser(null));
+    }
   };
 
   const handleAuthSuccess = (userName: string) => {
@@ -98,7 +106,9 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   const handleLogout = () => {
     startTransition(async () => {
       try {
-        await account.deleteSession("current");
+        if (account && typeof account.deleteSession === "function") {
+          await account.deleteSession("current");
+        }
       } catch {}
 
       try {

@@ -32,27 +32,31 @@ export default function ProfilePage() {
     } catch {}
 
     // 2. Fetch fresh Appwrite session
-    account
-      .get()
-      .then((accountUser) => {
-        const u = {
-          name: accountUser.name,
-          email: accountUser.email,
-          $id: accountUser.$id,
-          registration: accountUser.registration,
-        };
-        setUser(u);
-        try {
-          localStorage.setItem("auth_user", JSON.stringify(u));
-        } catch {}
-      })
-      .catch(() => {
-        // Not authenticated
-        setUser(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    if (account && typeof account.get === "function") {
+      account
+        .get()
+        .then((accountUser) => {
+          const u = {
+            name: accountUser.name,
+            email: accountUser.email,
+            $id: accountUser.$id,
+            registration: accountUser.registration,
+          };
+          setUser(u);
+          try {
+            localStorage.setItem("auth_user", JSON.stringify(u));
+          } catch {}
+        })
+        .catch(() => {
+          // Not authenticated
+          setUser(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const handleLogout = async () => {
