@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { setCookiePreferenceAction } from "@/app/actions";
 
 export type Theme = "dark" | "light" | "cyberpunk";
 
@@ -35,7 +34,6 @@ export function applyTheme(theme: Theme) {
     root.classList.add("dark", "cyberpunk");
     root.setAttribute("data-theme", "cyberpunk");
   } else {
-    // "light"
     root.classList.add("light");
     root.setAttribute("data-theme", "light");
   }
@@ -54,11 +52,6 @@ function persistTheme(theme: Theme) {
   try {
     localStorage.setItem("theme", theme);
   } catch {}
-
-  // 3. Background server cookie sync
-  try {
-    setCookiePreferenceAction("theme", theme).catch(() => {});
-  } catch {}
 }
 
 export function ThemeProvider({
@@ -70,36 +63,31 @@ export function ThemeProvider({
 }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme || "dark");
 
-  // On mount, sync with localStorage if user previously selected a theme
+  // On mount, check if user had a saved theme in localStorage that differs from SSR
   useEffect(() => {
     try {
       const stored = localStorage.getItem("theme") as Theme | null;
-      if (stored && CYCLE.includes(stored)) {
-        if (stored !== theme) {
-          setThemeState(stored);
-        }
-        applyTheme(stored);
-      } else {
-        applyTheme(theme);
+      if (stored && CYCLE.includes(stored) && stored !== theme) {
+        setThemeState(stored);
       }
-    } catch {
-      applyTheme(theme);
-    }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Whenever theme changes, apply DOM classes and persist (runs after render commit)
+  useEffect(() => {
+    applyTheme(theme);
+    persistTheme(theme);
+  }, [theme]);
 
   const changeTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    applyTheme(newTheme);
-    persistTheme(newTheme);
   }, []);
 
   const cycleTheme = useCallback(() => {
     setThemeState((current) => {
       const nextIndex = (CYCLE.indexOf(current) + 1) % CYCLE.length;
-      const next = CYCLE[nextIndex];
-      applyTheme(next);
-      persistTheme(next);
-      return next;
+      return CYCLE[nextIndex];
     });
   }, []);
 
