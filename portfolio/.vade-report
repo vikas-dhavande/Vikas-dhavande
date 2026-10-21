@@ -1,0 +1,51 @@
+# Vercel Web Analytics Implementation
+
+## Summary
+Successfully installed and configured Vercel Web Analytics for the Next.js portfolio project following the official Vercel documentation.
+
+## Changes Made
+
+### 1. Package Installation
+- Installed `@vercel/analytics@^2.0.1` using pnpm
+- Package added to dependencies in `package.json`
+- Lock file (`pnpm-lock.yaml`) updated with new dependency tree
+
+### 2. Code Changes
+**File: `src/app/layout.js`**
+- Added import statement: `import { Analytics } from "@vercel/analytics/next";`
+- Added `<Analytics />` component at the end of the `<body>` tag (after `<SpeedInsights />`)
+- Placement follows Next.js App Router best practices from official documentation
+
+## Implementation Details
+
+### Framework Detection
+- Identified as Next.js 15.5.28 with App Router
+- Using JavaScript (not TypeScript) for the root layout
+- Package manager: pnpm v10.34.5
+
+### Documentation Reference
+Fetched latest instructions from: https://vercel.com/docs/analytics/quickstart
+- Confirmed package name: `@vercel/analytics`
+- Followed Next.js App Router specific implementation
+- Analytics component placed in root layout for global tracking
+
+### Build Verification
+- Build tested successfully (required temporary Appwrite env vars for unrelated dependency)
+- No linting or compilation errors introduced by Analytics changes
+- Component properly integrated alongside existing SpeedInsights component
+
+## Next Steps for Deployment
+1. Enable Web Analytics in the Vercel Dashboard (Analytics sidebar → Enable button)
+2. Deploy to Vercel to activate tracking
+3. Verify tracking by checking browser Network tab for requests to `/_vercel/insights/*` routes
+
+## Files Modified
+- `portfolio/package.json` - Added @vercel/analytics dependency
+- `portfolio/pnpm-lock.yaml` - Updated with new dependency tree
+- `portfolio/src/app/layout.js` - Added Analytics component import and usage
+
+## Notes
+- Analytics component is a client-side component that will automatically track page views
+- No additional configuration required
+- Works seamlessly with existing SpeedInsights implementation
+- Zero impact on existing functionality or code structure

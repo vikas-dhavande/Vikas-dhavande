@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
   title: "Vikas | Portfolio",
@@ -74,6 +75,7 @@ export default async function RootLayout({ children }) {
           {children}
         </ThemeProvider>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
