@@ -9,6 +9,8 @@ export interface ExperienceItem {
   highlights: string[];
   technologies: string[];
   link?: string;
+  logo?: string;
+  isCurrent?: boolean;
 }
 
 export interface EducationItem {

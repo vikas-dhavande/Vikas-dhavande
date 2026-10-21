@@ -20,7 +20,9 @@
         "Documenting detailed test results and failure patterns to build a research knowledge base, providing data-driven feedback to optimize design iterations"
       ],
       "technologies": ["MATLAB", "LabVIEW", "Python", "C++", "HIL Simulation", "Avionics Subsystems"],
-      "link": "https://www.foxconn.com"
+      "link": "https://www.foxconn.com",
+      "logo": "foxconn",
+      "isCurrent": true
     },
     {
       "id": "exp-iisc",
@@ -36,7 +38,9 @@
         "Authored automated verification scripts in Python, LabVIEW, and C++ for system compliance"
       ],
       "technologies": ["C/C++", "Python", "LabVIEW", "Avionics", "HIL Testing", "Instrumentation"],
-      "link": "https://iisc.ac.in"
+      "link": "https://iisc.ac.in",
+      "logo": "iisc",
+      "isCurrent": false
     },
     {
       "id": "exp-bosch-lead",
@@ -52,7 +56,9 @@
         "Enforced strict quality compliance (IPC-A-610), segregating defective units and validating fixes to achieve 100% defect-free releases"
       ],
       "technologies": ["Automotive ECUs", "BCUs & DCDC Converters", "ICT & FPT Systems", "IPC-A-610", "Root Cause Analysis"],
-      "link": "https://www.bosch.in"
+      "link": "https://www.bosch.in",
+      "logo": "bosch",
+      "isCurrent": false
     },
     {
       "id": "exp-bosch-apprentice",
@@ -68,7 +74,9 @@
         "Maintained audit-ready technical documentation of ECR activities and plant compliance"
       ],
       "technologies": ["SAP-PP", "SAP-MM", "Engineering Drawings", "BOM Analysis", "ECR Management"],
-      "link": "https://www.bosch.in"
+      "link": "https://www.bosch.in",
+      "logo": "bosch",
+      "isCurrent": false
     },
     {
       "id": "exp-wistron",
@@ -84,7 +92,9 @@
         "Maintained strict global IPC manufacturing standards for high-throughput SMT lines"
       ],
       "technologies": ["SMT Line Operations", "AOI & SPI Inspection", "Pick and Place", "MLB Manufacturing", "IPC Standards"],
-      "link": "https://www.wistron.com"
+      "link": "https://www.wistron.com",
+      "logo": "wistron",
+      "isCurrent": false
     }
   ],
   "education": [
