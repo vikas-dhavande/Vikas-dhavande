@@ -35,7 +35,7 @@ function OAuthCallbackContent() {
         if (window.opener) {
           window.close();
         } else {
-          router.push("/login-01");
+          router.push("/");
         }
       }, 2000);
       return;
@@ -80,7 +80,7 @@ function OAuthCallbackContent() {
             if (window.opener) {
               window.close();
             } else {
-              router.push("/login-01");
+              router.push("/");
             }
           }, 2000);
         }

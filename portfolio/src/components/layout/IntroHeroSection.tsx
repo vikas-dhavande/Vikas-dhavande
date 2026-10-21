@@ -1,30 +1,40 @@
+"use client";
+
 import { WaveGridBackground } from "@/components/ui/wave-grid-background";
+import { useTheme } from "@/components/layout/ThemeProvider";
 
 const NAME = "VIKAS";
 
 // Roughly fills ~92% of the viewport width regardless of name length.
-// Increase 0.65 slightly if the text looks too small, decrease if it overflows.
 const fontSizeVw = 92 / (NAME.length * 0.65);
 
 export function IntroHeroSection() {
+  const { theme } = useTheme();
+
+  const waveColors = {
+    dark: { base: "#09090b", high: "#e11d48" },
+    cyberpunk: { base: "#0c081f", high: "#00ffcc" },
+    light: { base: "#f4f4f5", high: "#2563eb" },
+  }[theme] || { base: "#09090b", high: "#e11d48" };
+
   return (
     <section
       id="explore"
       aria-label="Animated intro background"
-      className="relative isolate flex min-h-[calc(100svh-4rem)] w-full items-center justify-center overflow-hidden border-b border-neutral-200 bg-[#F4F4F5]"
+      className="relative isolate flex min-h-[calc(100svh-4rem)] w-full items-center justify-center overflow-hidden border-b border-border bg-background transition-colors duration-300"
     >
       <WaveGridBackground
         className="absolute inset-0 z-0"
-        colorBase="#f7f7f8"
-        colorHigh="#2904ff"
+        colorBase={waveColors.base}
+        colorHigh={waveColors.high}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-[1] bg-white/[0.3]"
+        className="pointer-events-none absolute inset-0 z-[1] bg-background/25 backdrop-blur-[1px]"
       />
 
       <h1
-        className="pointer-events-none relative z-[2] w-full select-none whitespace-nowrap px-[4vw] text-center font-extrabold uppercase leading-none tracking-tighter text-neutral-950"
+        className="pointer-events-none relative z-[2] w-full select-none whitespace-nowrap px-[4vw] text-center font-extrabold uppercase leading-none tracking-tighter text-foreground drop-shadow-sm transition-colors duration-300"
         style={{ fontSize: `${fontSizeVw}vw` }}
       >
         {NAME}
@@ -32,3 +42,5 @@ export function IntroHeroSection() {
     </section>
   );
 }
+
+export default IntroHeroSection;

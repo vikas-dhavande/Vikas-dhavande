@@ -1,163 +1,214 @@
-import React, { Suspense } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { getCachedUserProfile } from "@/lib/data-service";
-import { Header } from "@/components/caching/Header";
-import { CacheStatusBadge } from "@/components/caching/CacheStatusBadge";
-import { RevalidationControls } from "@/components/caching/RevalidationControls";
-import { CodeSnippet } from "@/components/caching/CodeSnippet";
+import { useRouter } from "next/navigation";
+import { Blobatar } from "@blobatar/react";
+import { ArrowLeft, LogOut, ShieldCheck, UserCheck, Sparkles, Key } from "lucide-react";
+import { account } from "@/lib/appwrite";
+import { clearCookieAction } from "@/app/actions";
 
-async function ProfileDetails() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get("session")?.value || "guest-session-42";
-  const currentTheme = cookieStore.get("theme")?.value || "light";
-
-  // sessionId is passed to cached function and becomes part of the cache key!
-  const profile = await getCachedUserProfile(sessionId);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Session Metadata Card */}
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Client Cookie Identity
-            </span>
-            <CacheStatusBadge type="runtime-api" label="Extracted from cookies()" />
-          </div>
-
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex flex-col gap-2">
-            <div className="text-xs text-muted-foreground">Active Session ID:</div>
-            <div className="font-mono text-sm font-bold text-foreground break-all">{sessionId}</div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              Active Theme: <span className="capitalize font-semibold text-foreground">{currentTheme}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground">
-          🍪 <code>cookies()</code> is evaluated on the server at request time without deopting the layout.
-        </div>
-      </div>
-
-      {/* Cached Profile Output */}
-      <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 shadow-xs flex flex-col justify-between">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-purple-700 dark:text-purple-400">
-              Cached Profile Result
-            </span>
-            <span className="text-[10px] font-mono rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 px-2 py-0.5">
-              &apos;use cache&apos;
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-foreground">{profile.tier}</span>
-              <span className="text-xs font-mono text-purple-600 dark:text-purple-400">
-                {profile.quotaRemaining.toLocaleString()} API ops remaining
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-background/80 p-3.5 border border-purple-500/20 text-xs">
-              <span className="text-[10px] text-muted-foreground uppercase font-semibold">Enabled Entitlements</span>
-              <ul className="mt-2 space-y-1 text-foreground">
-                {profile.featuresEnabled.map((feat, idx) => (
-                  <li key={idx} className="flex items-center gap-1.5 text-xs">
-                    <span className="text-purple-500">✓</span>
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 pt-3 border-t border-purple-500/20 text-[11px] text-muted-foreground">
-          🕒 <strong>Last Evaluated At:</strong> {new Date(profile.lastEvaluatedAt).toLocaleTimeString()}
-        </div>
-      </div>
-    </div>
-  );
+interface UserInfo {
+  name: string;
+  email: string;
+  $id?: string;
+  registration?: string;
 }
 
-export default async function ProfilePage() {
-  const cookieStore = await cookies();
-  const theme = cookieStore.get("theme")?.value || "light";
-  const session = cookieStore.get("session")?.value || "guest-session-42";
+export default function ProfilePage() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [avatarSeed, setAvatarSeed] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const codeExample = `// 1. Parent reads request-time cookies
-async function ProfilePage() {
-  const session = (await cookies()).get('session')?.value
-  return <CachedUserProfile sessionId={session} />
-}
+  useEffect(() => {
+    // 1. Try local storage cache for instant paint
+    try {
+      const cached = localStorage.getItem("auth_user");
+      const seed = localStorage.getItem("avatar_seed");
+      if (cached) setUser(JSON.parse(cached));
+      if (seed) setAvatarSeed(seed);
+    } catch {}
 
-// 2. Child is cached; sessionId becomes the cache key
-async function CachedUserProfile({ sessionId }: { sessionId: string }) {
-  'use cache'
-  cacheLife('minutes')
-  return await fetchProfile(sessionId)
-}`;
+    // 2. Fetch fresh Appwrite session
+    account
+      .get()
+      .then((accountUser) => {
+        const u = {
+          name: accountUser.name,
+          email: accountUser.email,
+          $id: accountUser.$id,
+          registration: accountUser.registration,
+        };
+        setUser(u);
+        try {
+          localStorage.setItem("auth_user", JSON.stringify(u));
+        } catch {}
+      })
+      .catch(() => {
+        // Not authenticated
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await account.deleteSession("current");
+    } catch {}
+
+    try {
+      localStorage.removeItem("auth_user");
+      localStorage.removeItem("avatar_seed");
+    } catch {}
+
+    await clearCookieAction("auth_user");
+    await clearCookieAction("avatar_seed");
+
+    setUser(null);
+    setLoggingOut(false);
+    router.push("/");
+  };
+
+  const displayName = user?.name || "Guest Visitor";
+  const displayEmail = user?.email || "Not signed in";
+  const seed = avatarSeed || displayName;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col justify-between selection:bg-primary/30 transition-colors duration-300">
+      {/* Background radial glow */}
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(225,29,72,0.12),rgba(255,255,255,0))]" />
 
-      <main className="w-full px-4 lg:px-8 py-8 flex-1 flex flex-col gap-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Runtime Session &amp; Cookie Isolation
-              </h1>
-              <CacheStatusBadge type="runtime-api" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Extract user-specific session cookies and pass them as arguments to <code>&apos;use cache&apos;</code>{" "}
-              functions to enable isolated, safe multi-tenant caching.
-            </p>
-          </div>
+      {/* Top Header */}
+      <header className="relative z-10 w-full border-b border-border bg-background/80 backdrop-blur-xl px-4 py-4 sm:px-8">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link
             href="/"
-            className="text-xs font-medium text-primary hover:underline flex items-center gap-1 w-fit"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all cursor-pointer"
           >
-            ← Back to Studio Overview
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Portfolio
           </Link>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-mono text-muted-foreground">Account Portal</span>
+          </div>
         </div>
+      </header>
 
-        {/* Live Controller */}
-        <RevalidationControls currentTheme={theme} currentSession={session} />
+      {/* Main Container */}
+      <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 py-10 sm:py-16 flex flex-col justify-center">
+        <div className="rounded-2xl border border-border bg-card/90 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+          {/* Subtle accent border at top */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-80" />
 
-        {/* Live Details */}
-        <Suspense
-          fallback={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-48 rounded-2xl bg-muted/40 animate-pulse border border-border/40" />
-              <div className="h-48 rounded-2xl bg-muted/40 animate-pulse border border-border/40" />
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-[#E11D48]" />
+              <p className="text-sm font-mono text-zinc-400">Loading account credentials…</p>
             </div>
-          }
-        >
-          <ProfileDetails />
-        </Suspense>
+          ) : (
+            <div className="flex flex-col gap-8">
+              {/* Profile Card Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 border-b border-border">
+                <div className="flex items-center gap-5">
+                  <div className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border border-border bg-card shadow-xl flex-shrink-0 p-1">
+                    <Blobatar
+                      name={seed}
+                      animate="hover"
+                      style={{ width: "100%", height: "100%", borderRadius: "12px" }}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                        {displayName}
+                      </h1>
+                      {user && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
+                          <ShieldCheck className="h-3 w-3" />
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5 font-mono">{displayEmail}</p>
+                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+                      <UserCheck className="h-3.5 w-3.5 text-primary" />
+                      {user ? "Authenticated via Appwrite Cloud Auth" : "Guest browsing mode"}
+                    </p>
+                  </div>
+                </div>
 
-        {/* Explainer */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col gap-4">
-          <h2 className="text-base font-semibold text-foreground">Cache Key Isolation Details</h2>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Because arguments to functions using <code>&apos;use cache&apos;</code> automatically become part of the
-            internal cache key, calls with different session IDs generate isolated RSC payloads. This allows private or
-            tenant-specific data to be cached safely and included in client prefetches.
-          </p>
-          <CodeSnippet
-            title="Passing Runtime Values Pattern"
-            code={codeExample}
-            docLink="https://nextjs.org/docs/app/getting-started/caching#passing-runtime-values-to-cached-functions"
-          />
+                {user && (
+                  <button
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    {loggingOut ? "Signing out…" : "Sign Out"}
+                  </button>
+                )}
+              </div>
+
+              {/* Account Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border bg-muted/40 p-4 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
+                      Identity &amp; Role
+                    </span>
+                    <p className="text-sm font-semibold text-foreground mt-1">
+                      {user ? "Authorized Visitor / Reviewer" : "Public Explorer"}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Granted access to explore project telemetry, full resume modules, and developer notes.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/40 p-4 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Key className="h-3 w-3 text-muted-foreground" />
+                      Session Security
+                    </span>
+                    <p className="text-xs font-mono text-foreground mt-1 truncate">
+                      {user?.$id ? `ID: ${user.$id}` : "Session: Guest Cookie Mode"}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Encrypted cookie &amp; token storage scoped strictly to this origin.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom Guidance */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border text-xs text-muted-foreground">
+                <p className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  Need to update your info or reach out? Contact Vikas directly.
+                </p>
+                <Link
+                  href="/#experience"
+                  className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+                >
+                  Explore Engineering Experience →
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full border-t border-border px-4 py-4 text-center text-xs text-muted-foreground font-mono">
+        Vikas N Dhavande Portfolio © {new Date().getFullYear()} — Built with Next.js 15
+      </footer>
     </div>
   );
 }

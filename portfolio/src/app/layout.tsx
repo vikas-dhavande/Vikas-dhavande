@@ -1,11 +1,13 @@
 import "./app.css";
+import React from "react";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Vikas | Portfolio",
   description: "Personal portfolio showcasing selected work and experience.",
   icons: {
@@ -38,33 +40,48 @@ const themeScript = `
     // 3. Final fallback
     if (!theme) theme = "dark";
 
-    // Apply classes
+    // Apply classes and data-theme attribute
     var root = document.documentElement;
-    root.classList.remove("dark", "cyberpunk");
-    if (theme === "dark")       root.classList.add("dark");
-    if (theme === "cyberpunk")  root.classList.add("dark", "cyberpunk");
-    // "light" → no classes added
+    root.classList.remove("dark", "cyberpunk", "light");
+    root.removeAttribute("data-theme");
+    if (theme === "dark") {
+      root.classList.add("dark");
+      root.setAttribute("data-theme", "dark");
+    } else if (theme === "cyberpunk") {
+      root.classList.add("dark", "cyberpunk");
+      root.setAttribute("data-theme", "cyberpunk");
+    } else {
+      root.classList.add("light");
+      root.setAttribute("data-theme", "light");
+    }
   } catch (e) {
     // If storage is blocked, default to dark
     document.documentElement.classList.add("dark");
+    document.documentElement.setAttribute("data-theme", "dark");
   }
 })();
 `;
 
-export default async function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: React.ReactNode;
+}
+
+export default async function RootLayout({ children }: RootLayoutProps) {
   const cookieStore = await cookies();
-  const theme = cookieStore.get("theme")?.value || "dark";
+  const rawTheme = cookieStore.get("theme")?.value;
+  const theme = rawTheme === "light" || rawTheme === "cyberpunk" || rawTheme === "dark" ? rawTheme : "dark";
 
   return (
     <html
       lang="en"
       className={
         theme === "light"
-          ? ""
+          ? "light"
           : theme === "cyberpunk"
           ? "dark cyberpunk"
           : "dark"
       }
+      data-theme={theme}
       suppressHydrationWarning
     >
       <head>

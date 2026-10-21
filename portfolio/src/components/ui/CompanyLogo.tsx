@@ -26,7 +26,7 @@ export function CompanyLogo({
   }[size];
 
   const frostedBase =
-    "relative flex shrink-0 items-center justify-center border border-white/15 bg-white/[0.08] dark:bg-zinc-900/80 backdrop-blur-md shadow-md transition-all duration-300";
+    "relative flex shrink-0 items-center justify-center border border-border bg-card/60 backdrop-blur-md shadow-sm transition-all duration-300";
 
   // FOXCONN HON HAI TECHNOLOGY INDIA
   if (normalized.includes("foxconn") || normalized.includes("hon hai")) {

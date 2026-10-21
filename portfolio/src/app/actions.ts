@@ -26,11 +26,13 @@ export async function setCookiePreferenceAction(key: string, value: string) {
     const cookieStore = await cookies();
     cookieStore.set(key, value, {
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 365, // 1 year
       httpOnly: false,
       sameSite: "lax",
     });
-    revalidatePath("/");
+    if (key !== "theme") {
+      revalidatePath("/");
+    }
     return { success: true, key, value };
   } catch (error) {
     return { success: false, message: (error as Error).message };

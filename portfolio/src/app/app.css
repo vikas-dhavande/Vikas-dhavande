@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-@custom-variant cyberpunk (&:is(.cyberpunk *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+@custom-variant cyberpunk (&:where([data-theme="cyberpunk"], [data-theme="cyberpunk"] *, .cyberpunk, .cyberpunk *));
 
 summary::-webkit-details-marker {
   display: none;
@@ -54,7 +54,9 @@ summary::-webkit-details-marker {
  * ROOT DESIGN SYSTEM SPECIFICATIONS
  * Measured and extracted from DESIGN.md (Lightswind UI)
  */
-:root {
+:root,
+.dark,
+[data-theme="dark"] {
   /* Default Obsidian Dark Space Palette */
   --background: #000000;
   --foreground: #f4f4f5;
@@ -99,6 +101,8 @@ summary::-webkit-details-marker {
 }
 
 /* Light Mode Overrides */
+.light,
+[data-theme="light"],
 html:not(.dark):not(.cyberpunk) {
   --background: #fafafb;
   --foreground: #09090b;
@@ -112,24 +116,63 @@ html:not(.dark):not(.cyberpunk) {
   --secondary-foreground: #18181b;
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
-  --accent: #f4f4f5;
+  --accent: #e4e4e7;
   --accent-foreground: #09090b;
   --destructive: #e11d48;
   --border: #e4e4e7;
   --input: #e4e4e7;
   --ring: #3b82f6;
+
+  --footer-card-bg-gradient: #ffffff;
+  --footer-card-border: #e4e4e7;
+  --footer-card-box-border: #e4e4e7;
+  --footer-card-btn-bg: #09090b;
+  --footer-card-btn-text: #ffffff;
+  --footer-card-btn-hover: #27272a;
+  --footer-card-heading: #09090b;
+  --footer-card-subtle: #71717a;
+  --footer-card-link-hover: #09090b;
+  --footer-pill-bg: rgba(0, 0, 0, 0.04);
+  --footer-pill-border: #e4e4e7;
+  --footer-pill-text: #3f3f46;
+  --footer-divider: #e4e4e7;
 }
 
 /* Cyberpunk Variant from DESIGN.md Accent Ramp */
-.cyberpunk {
+.cyberpunk,
+[data-theme="cyberpunk"] {
   --background: #060810;
   --foreground: #f4f4f5;
   --card: #0c1020;
   --card-foreground: #f4f4f5;
+  --popover: #0c1020;
+  --popover-foreground: #ffffff;
   --primary: #e11d48;
   --primary-foreground: #ffffff;
+  --secondary: #121829;
+  --secondary-foreground: #f4f4f5;
+  --muted: #121829;
+  --muted-foreground: #818cf8;
+  --accent: #1e293b;
+  --accent-foreground: #38bdf8;
+  --destructive: #f43f5e;
   --border: rgba(77, 138, 255, 0.3);
+  --input: rgba(77, 138, 255, 0.35);
   --ring: #e11d48;
+
+  --footer-card-bg-gradient: #060810;
+  --footer-card-border: rgba(77, 138, 255, 0.3);
+  --footer-card-box-border: rgba(77, 138, 255, 0.3);
+  --footer-card-btn-bg: #e11d48;
+  --footer-card-btn-text: #ffffff;
+  --footer-card-btn-hover: #f43f5e;
+  --footer-card-heading: #ffffff;
+  --footer-card-subtle: #818cf8;
+  --footer-card-link-hover: #38bdf8;
+  --footer-pill-bg: rgba(225, 29, 72, 0.1);
+  --footer-pill-border: rgba(77, 138, 255, 0.3);
+  --footer-pill-text: #e0e7ff;
+  --footer-divider: rgba(77, 138, 255, 0.2);
 }
 
 @layer base {
