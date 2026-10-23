@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -144,9 +145,11 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
                   isDisabled={loading || oauthLoading !== null}
                   className="text-sm font-medium text-card-foreground gap-2 dark:bg-background rounded-lg h-9 shadow-xs cursor-pointer"
                 >
-                  <img
-                    src="https://images.shadcnspace.com/assets/svgs/icon-google.svg"
-                    alt="google icon"
+                  <Image
+                    src="/google.svg"
+                    alt="Google Logo"
+                    width={16}
+                    height={16}
                     className="h-4 w-4"
                   />
                   {oauthLoading === "google" ? "Connecting popup…" : "Sign in with Google"}
@@ -158,15 +161,12 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
                   isDisabled={loading || oauthLoading !== null}
                   className="text-sm font-medium text-card-foreground gap-2 dark:bg-background rounded-lg h-9 shadow-xs cursor-pointer"
                 >
-                  <img
-                    src="https://images.shadcnspace.com/assets/svgs/icon-github.svg"
-                    alt="github icon"
-                    className="dark:hidden h-4 w-4"
-                  />
-                  <img
-                    src="https://images.shadcnspace.com/assets/svgs/icon-github-white.svg"
-                    alt="github icon"
-                    className="hidden dark:block h-4 w-4"
+                  <Image
+                    src="/github.svg"
+                    alt="GitHub Logo"
+                    width={16}
+                    height={16}
+                    className="h-4 w-4 dark:invert"
                   />
                   {oauthLoading === "github" ? "Connecting popup…" : "Sign in with Github"}
                 </Button>
@@ -240,6 +240,7 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
                     <input
                       type="checkbox"
                       id="remember-device"
+                      name="remember-device"
                       checked={rememberDevice}
                       onChange={(e) => setRememberDevice(e.target.checked)}
                       className="size-4 rounded border border-border bg-background accent-primary text-primary focus:ring-2 focus:ring-primary/50 cursor-pointer transition-all"

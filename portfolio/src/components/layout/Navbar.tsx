@@ -55,7 +55,12 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       return;
     }
 
-    if (account && typeof account.get === "function") {
+    // Only query Appwrite if there is an existing session token/cookie/local cache
+    // to avoid logging 401 errors to the browser console for guest visitors
+    const hasCachedUser = typeof window !== "undefined" && !!localStorage.getItem("auth_user");
+    const hasAuthCookie = typeof document !== "undefined" && document.cookie.includes("auth_user");
+
+    if ((hasCachedUser || hasAuthCookie) && account && typeof account.get === "function") {
       account
         .get()
         .then((u) => {
@@ -72,7 +77,9 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
     // Auto-sync session when tab receives focus (e.g. after popup or external auth)
     const handleFocus = () => {
-      if (account && typeof account.get === "function") {
+      const hasSession = (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
+        (typeof document !== "undefined" && document.cookie.includes("auth_user"));
+      if (hasSession && account && typeof account.get === "function") {
         account
           .get()
           .then((u) => {
@@ -87,7 +94,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialUser]);
 
   const refreshUser = () => {
     if (account && typeof account.get === "function") {
@@ -270,6 +277,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
           {/* Mobile Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
             className="md:hidden flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

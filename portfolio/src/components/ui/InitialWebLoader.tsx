@@ -5,17 +5,12 @@ import { KineticTextLoader } from "./kinetic-text-loader";
 
 export function InitialWebLoader() {
   const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [statusText, setStatusText] = useState("Initializing Experience…");
 
   useEffect(() => {
     setMounted(true);
-
-    // Initial site load: show loader briefly to allow fonts, 3D scenes, and themes to settle
-    const timer = setTimeout(() => {
-      setVisible(false);
-    }, 700);
 
     // Listen for custom API / Animation refresh events from UI
     const handleRefresh = (e: Event) => {
@@ -33,7 +28,6 @@ export function InitialWebLoader() {
     window.addEventListener("trigger-web-refresh", handleRefresh);
 
     return () => {
-      clearTimeout(timer);
       window.removeEventListener("trigger-web-refresh", handleRefresh);
     };
   }, []);

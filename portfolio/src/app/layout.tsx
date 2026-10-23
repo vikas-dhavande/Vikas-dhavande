@@ -1,15 +1,76 @@
 import "./app.css";
 import React from "react";
-import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import type { Metadata, Viewport } from "next";
+import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "Vikas | Portfolio",
-  description: "Personal portfolio showcasing selected work and experience.",
+  metadataBase: new URL("https://vikas-dhavande.vercel.app"),
+  title: "Vikas N Dhavande | Senior Avionics & Systems Engineer Portfolio",
+  description:
+    "Engineering portfolio of Vikas N Dhavande — Aerospace, Defense Avionics, Embedded Systems, RTOS & Industrial Electronics Specialist.",
+  keywords: [
+    "Vikas N Dhavande",
+    "Avionics Engineer",
+    "Hardware Systems Engineer",
+    "Aerospace Defense Electronics",
+    "Embedded Systems",
+    "RTOS",
+    "Next.js Portfolio",
+  ],
+  authors: [{ name: "Vikas N Dhavande", url: "https://vikas-dhavande.vercel.app" }],
+  creator: "Vikas N Dhavande",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Vikas N Dhavande | Senior Avionics & Systems Engineer Portfolio",
+    description:
+      "Engineering portfolio of Vikas N Dhavande — Aerospace, Defense Avionics, Embedded Systems, RTOS & Industrial Electronics Specialist.",
+    url: "https://vikas-dhavande.vercel.app",
+    siteName: "Vikas N Dhavande Portfolio",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vikas N Dhavande | Senior Avionics & Systems Engineer Portfolio",
+    description:
+      "Engineering portfolio of Vikas N Dhavande — Aerospace, Defense Avionics, Embedded Systems, RTOS & Industrial Electronics Specialist.",
+    creator: "@vikasdhavande",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -29,18 +90,11 @@ const themeScript = `
 (function () {
   try {
     var theme = null;
-
-    // 1. Try to read theme from cookie (available on client too)
     var match = document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);
     if (match) theme = match[1];
-
-    // 2. Fall back to localStorage
     if (!theme) theme = localStorage.getItem("theme");
-
-    // 3. Final fallback
     if (!theme) theme = "dark";
 
-    // Apply classes and data-theme attribute
     var root = document.documentElement;
     root.classList.remove("dark", "cyberpunk", "light");
     root.removeAttribute("data-theme");
@@ -55,7 +109,6 @@ const themeScript = `
       root.setAttribute("data-theme", "light");
     }
   } catch (e) {
-    // If storage is blocked, default to dark
     document.documentElement.classList.add("dark");
     document.documentElement.setAttribute("data-theme", "dark");
   }
@@ -66,37 +119,20 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function RootLayout({ children }: RootLayoutProps) {
-  const cookieStore = await cookies();
-  const rawTheme = cookieStore.get("theme")?.value;
-  const theme = rawTheme === "light" || rawTheme === "cyberpunk" || rawTheme === "dark" ? rawTheme : "dark";
-
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={
-        theme === "light"
-          ? "light"
-          : theme === "cyberpunk"
-          ? "dark cyberpunk"
-          : "dark"
-      }
-      data-theme={theme}
+      className={`dark ${inter.variable} ${firaCode.variable}`}
+      data-theme="dark"
       suppressHydrationWarning
     >
       <head>
-        {/* Blocking anti-flash script — must be first in <head> */}
+        {/* Blocking anti-flash script — runs synchronously before CSS render */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Roboto:wght@300&display=swap"
-          rel="stylesheet"
-        />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
-        <ThemeProvider initialTheme={theme}>
+        <ThemeProvider initialTheme="dark">
           <InitialWebLoader />
           {children}
         </ThemeProvider>

@@ -31,8 +31,11 @@ export default function ProfilePage() {
       if (seed) setAvatarSeed(seed);
     } catch {}
 
-    // 2. Fetch fresh Appwrite session
-    if (account && typeof account.get === "function") {
+    // 2. Fetch fresh Appwrite session only if authenticated session exists
+    const hasCachedUser = typeof window !== "undefined" && !!localStorage.getItem("auth_user");
+    const hasAuthCookie = typeof document !== "undefined" && document.cookie.includes("auth_user");
+
+    if ((hasCachedUser || hasAuthCookie) && account && typeof account.get === "function") {
       account
         .get()
         .then((accountUser) => {

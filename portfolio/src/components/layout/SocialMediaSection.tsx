@@ -161,10 +161,12 @@ export function SocialMediaSection({ socials }: SocialMediaSectionProps) {
               ) : (
                 <form onSubmit={handleSendMessage} className="flex flex-col gap-3">
                   <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
+                    <label htmlFor="contact-name" className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
                       Your Name
                     </label>
                     <input
+                      id="contact-name"
+                      name="name"
                       type="text"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
@@ -174,10 +176,12 @@ export function SocialMediaSection({ socials }: SocialMediaSectionProps) {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
+                    <label htmlFor="contact-email" className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
                       Your Email <span className="text-[#E11D48]">*</span>
                     </label>
                     <input
+                      id="contact-email"
+                      name="email"
                       type="email"
                       required
                       value={contactEmail}
@@ -188,10 +192,12 @@ export function SocialMediaSection({ socials }: SocialMediaSectionProps) {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
+                    <label htmlFor="contact-message" className="block text-[11px] font-mono text-muted-foreground mb-1.5 uppercase tracking-wider">
                       Message <span className="text-[#E11D48]">*</span>
                     </label>
                     <textarea
+                      id="contact-message"
+                      name="message"
                       required
                       rows={3}
                       value={contactMessage}

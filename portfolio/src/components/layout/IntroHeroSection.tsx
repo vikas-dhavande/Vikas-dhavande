@@ -1,7 +1,17 @@
 "use client";
 
-import { WaveGridBackground } from "@/components/ui/wave-grid-background";
+import dynamic from "next/dynamic";
 import { useTheme } from "@/components/layout/ThemeProvider";
+
+// Dynamic import with SSR disabled isolates Three.js into an asynchronous chunk,
+// preventing main-thread blocking during critical Largest Contentful Paint (LCP)
+const WaveGridBackground = dynamic(
+  () => import("@/components/ui/wave-grid-background").then((mod) => mod.WaveGridBackground),
+  {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 z-0 bg-background/50" />,
+  }
+);
 
 const NAME = "VIKAS";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
 
@@ -16,6 +16,11 @@ export function HeroSection() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const sendCommand = (func: string, args: unknown[] = []) => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -41,17 +46,20 @@ export function HeroSection() {
 
   return (
     <section className="relative flex min-h-[calc(100vh-4rem)] w-full flex-col justify-end overflow-hidden bg-black">
-      {/* Background YouTube Video */}
+      {/* Background YouTube Video (Privacy-enhanced, lazy-loaded) */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <iframe
-          ref={iframeRef}
-          className="absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2"
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&iv_load_policy=3&enablejsapi=1`}
-          title="Background video"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          tabIndex={-1}
-        />
+        {mounted && (
+          <iframe
+            ref={iframeRef}
+            className="absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2"
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&iv_load_policy=3&enablejsapi=1`}
+            title="Background video"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            loading="lazy"
+            tabIndex={-1}
+          />
+        )}
       </div>
 
       {/* Bottom Bar: Action Buttons + Video Controls */}

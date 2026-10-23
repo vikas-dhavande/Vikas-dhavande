@@ -504,9 +504,11 @@ export function WaveGridBackground({
     window.addEventListener("resize", applySize);
 
     // ── Animation loop ─────────────────────────────────────────────────────
-    const clock = new THREE.Clock();
-    renderer.setAnimationLoop(() => {
-      const delta = clock.getDelta();
+    let lastTime = performance.now();
+    renderer.setAnimationLoop((time) => {
+      const now = typeof time === "number" ? time : performance.now();
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
       const p = propsRef.current;
 
       // Reflect live prop changes into the shader uniforms.

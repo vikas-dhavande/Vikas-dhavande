@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface CompanyLogoProps {
@@ -41,9 +42,11 @@ export function CompanyLogo({
         )}
         title="Foxconn Hon Hai Technology India"
       >
-        <img
+        <Image
           src="/foxconn.png"
-          alt="Foxconn Hon Hai Technology"
+          alt="Foxconn Hon Hai Technology Logo"
+          width={80}
+          height={80}
           className="h-full w-full object-contain p-0.5"
         />
         {isCurrent && (
@@ -71,9 +74,11 @@ export function CompanyLogo({
         )}
         title="Indian Institute of Science (IISc) Bengaluru"
       >
-        <img
+        <Image
           src="/iisc.png"
           alt="Indian Institute of Science (IISc) Bengaluru Emblem"
+          width={80}
+          height={80}
           className="h-full w-full object-contain p-0.5 filter dark:invert dark:brightness-200 contrast-125"
         />
       </div>
@@ -92,9 +97,11 @@ export function CompanyLogo({
         )}
         title="Bosch Automotive Electronics India"
       >
-        <img
+        <Image
           src="/bosch.png"
-          alt="Bosch Automotive Electronics"
+          alt="Bosch Automotive Electronics Logo"
+          width={80}
+          height={80}
           className="h-full w-full object-contain p-0.5 filter dark:brightness-110"
         />
       </div>
@@ -113,9 +120,11 @@ export function CompanyLogo({
         )}
         title="Wistron Infocomm Manufacturing"
       >
-        <img
+        <Image
           src="/wistron.png"
-          alt="Wistron Infocomm Manufacturing"
+          alt="Wistron Infocomm Manufacturing Logo"
+          width={80}
+          height={80}
           className="h-full w-full object-contain p-0.5"
         />
       </div>

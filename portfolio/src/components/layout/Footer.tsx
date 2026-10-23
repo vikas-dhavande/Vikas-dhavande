@@ -104,7 +104,7 @@ export function Footer() {
                 <span className="text-muted-foreground/80">Bangalore, India</span>
               </li>
               <li>
-                <a href="#social" className="text-[#E11D48] hover:underline font-medium">
+                <a href="#social" className="text-rose-400 hover:text-rose-300 hover:underline font-medium transition-colors">
                   Send Direct Dispatch →
                 </a>
               </li>
