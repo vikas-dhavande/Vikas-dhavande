@@ -12,7 +12,7 @@ const THEME_META = {
 
 export function ThemeToggleButton() {
   const { theme, cycleTheme } = useTheme();
-  const currentMeta = THEME_META[theme] || THEME_META.dark;
+  const currentMeta = THEME_META[theme] || THEME_META.light;
   const { icon: Icon, label, next } = currentMeta;
 
   return (

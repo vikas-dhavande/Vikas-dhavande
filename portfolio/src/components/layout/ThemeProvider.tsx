@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 
 export type Theme = "dark" | "light" | "cyberpunk";
 
-export const CYCLE: Theme[] = ["dark", "light", "cyberpunk"];
+export const CYCLE: Theme[] = ["light", "dark", "cyberpunk"];
 
 interface ThemeContextValue {
   theme: Theme;
@@ -13,7 +13,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "dark",
+  theme: "light",
   cycleTheme: () => {},
   setTheme: () => {},
 });
@@ -55,13 +55,13 @@ function persistTheme(theme: Theme) {
 }
 
 export function ThemeProvider({
-  initialTheme,
+  initialTheme = "light",
   children,
 }: {
-  initialTheme: Theme;
+  initialTheme?: Theme;
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>(initialTheme || "dark");
+  const [theme, setThemeState] = useState<Theme>(initialTheme || "light");
 
   // On mount, check if user had a saved theme in localStorage that differs from SSR
   useEffect(() => {

@@ -25,7 +25,7 @@ export function IntroHeroSection() {
     dark: { base: "#09090b", high: "#e11d48" },
     cyberpunk: { base: "#0c081f", high: "#00ffcc" },
     light: { base: "#f4f4f5", high: "#2563eb" },
-  }[theme] || { base: "#09090b", high: "#e11d48" };
+  }[theme] || { base: "#f4f4f5", high: "#2563eb" };
 
   return (
     <section

@@ -83,7 +83,7 @@ export const metadata: Metadata = {
 
 /**
  * Inline script that runs synchronously BEFORE first paint.
- * Priority order: cookie → localStorage → default "dark"
+ * Priority order: cookie → localStorage → default "light"
  * Runs in <head> so the correct class is on <html> before any CSS is parsed.
  */
 const themeScript = `
@@ -93,7 +93,7 @@ const themeScript = `
     var match = document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);
     if (match) theme = match[1];
     if (!theme) theme = localStorage.getItem("theme");
-    if (!theme) theme = "dark";
+    if (!theme) theme = "light";
 
     var root = document.documentElement;
     root.classList.remove("dark", "cyberpunk", "light");
@@ -109,8 +109,8 @@ const themeScript = `
       root.setAttribute("data-theme", "light");
     }
   } catch (e) {
-    document.documentElement.classList.add("dark");
-    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.classList.add("light");
+    document.documentElement.setAttribute("data-theme", "light");
   }
 })();
 `;
@@ -123,8 +123,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${firaCode.variable}`}
-      data-theme="dark"
+      className={`light ${inter.variable} ${firaCode.variable}`}
+      data-theme="light"
       suppressHydrationWarning
     >
       <head>
@@ -132,7 +132,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
-        <ThemeProvider initialTheme="dark">
+        <ThemeProvider initialTheme="light">
           <InitialWebLoader />
           {children}
         </ThemeProvider>

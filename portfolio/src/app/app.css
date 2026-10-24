@@ -55,9 +55,56 @@ summary::-webkit-details-marker {
  * Measured and extracted from DESIGN.md (Lightswind UI)
  */
 :root,
+.light,
+[data-theme="light"],
+html:not(.dark):not(.cyberpunk) {
+  /* Default Light Space Palette */
+  --background: #fafafb;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #09090b;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #e4e4e7;
+  --accent-foreground: #09090b;
+  --destructive: #e11d48;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #3b82f6;
+
+  /* Custom Design Properties from DESIGN.md */
+  --primarylw: #e11d48;
+  --greedy: #173eff;
+  --darklw: #11131b;
+  --island-theme: #e11d48;
+  --lw-primary-color: #09090b;
+  --footer-card-bg-gradient: #ffffff;
+  --footer-card-border: #e4e4e7;
+  --footer-card-box-border: #e4e4e7;
+  --footer-card-btn-bg: #09090b;
+  --footer-card-btn-text: #ffffff;
+  --footer-card-btn-hover: #27272a;
+  --footer-card-heading: #09090b;
+  --footer-card-subtle: #71717a;
+  --footer-card-link-hover: #09090b;
+  --footer-pill-bg: rgba(0, 0, 0, 0.04);
+  --footer-pill-border: #e4e4e7;
+  --footer-pill-text: #3f3f46;
+  --footer-divider: #e4e4e7;
+
+  --radius: 0.5rem;
+}
+
+/* Dark Mode Overrides */
 .dark,
 [data-theme="dark"] {
-  /* Default Obsidian Dark Space Palette */
+  /* Obsidian Dark Space Palette */
   --background: #000000;
   --foreground: #f4f4f5;
   --card: #0d0d0f;
@@ -96,46 +143,6 @@ summary::-webkit-details-marker {
   --footer-pill-border: rgba(39, 39, 42, 0.8);
   --footer-pill-text: #d4d4d8;
   --footer-divider: rgba(39, 39, 42, 0.6);
-
-  --radius: 0.5rem;
-}
-
-/* Light Mode Overrides */
-.light,
-[data-theme="light"],
-html:not(.dark):not(.cyberpunk) {
-  --background: #fafafb;
-  --foreground: #09090b;
-  --card: #ffffff;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #09090b;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #e4e4e7;
-  --accent-foreground: #09090b;
-  --destructive: #e11d48;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #3b82f6;
-
-  --footer-card-bg-gradient: #ffffff;
-  --footer-card-border: #e4e4e7;
-  --footer-card-box-border: #e4e4e7;
-  --footer-card-btn-bg: #09090b;
-  --footer-card-btn-text: #ffffff;
-  --footer-card-btn-hover: #27272a;
-  --footer-card-heading: #09090b;
-  --footer-card-subtle: #71717a;
-  --footer-card-link-hover: #09090b;
-  --footer-pill-bg: rgba(0, 0, 0, 0.04);
-  --footer-pill-border: #e4e4e7;
-  --footer-pill-text: #3f3f46;
-  --footer-divider: #e4e4e7;
 }
 
 /* Cyberpunk Variant from DESIGN.md Accent Ramp */
