@@ -158,6 +158,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             <Link href="#skills" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Skills</Link>
             <Link href="#projects" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Projects</Link>
             <Link href="#resources" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Resources</Link>
+            <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors duration-150 font-medium text-foreground/90">Blog</Link>
             <Link href="#social" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Social</Link>
           </nav>
         </div>
@@ -300,6 +301,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             <Link href="#skills" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Skills</Link>
             <Link href="#projects" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Projects</Link>
             <Link href="#resources" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
+            <Link href="/blog" className="py-2 hover:text-foreground font-medium text-primary" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
             <Link href="#social" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Social</Link>
           </nav>
           <div className="pt-2 border-t border-border">

@@ -8,6 +8,7 @@ import { EducationSection } from "@/components/layout/EducationSection";
 import { SkillsSection } from "@/components/layout/SkillsSection";
 import { ProjectsSection } from "@/components/layout/ProjectsSection";
 import { ResourcesSection } from "@/components/layout/ResourcesSection";
+import { BlogPreviewSection } from "@/components/layout/BlogPreviewSection";
 import { SocialMediaSection } from "@/components/layout/SocialMediaSection";
 import { Footer } from "@/components/layout/Footer";
 import { getPortfolioData } from "@/lib/portfolio-service";
@@ -30,6 +31,7 @@ export default async function HomePage() {
         <SkillsSection categories={portfolioData.skillCategories} />
         <ProjectsSection projects={portfolioData.projects} />
         <ResourcesSection resources={portfolioData.resources} />
+        <BlogPreviewSection />
         <SocialMediaSection socials={portfolioData.socials} />
       </main>
       <Footer />

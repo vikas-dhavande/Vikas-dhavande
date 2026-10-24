@@ -62,6 +62,11 @@ export function Footer() {
             </h4>
             <ul className="space-y-2.5">
               <li>
+                <Link href="/blog" className="hover:text-foreground transition-colors font-medium text-foreground">
+                  Engineering Blog
+                </Link>
+              </li>
+              <li>
                 <a href="#resources" className="hover:text-foreground transition-colors">
                   Curated Resources
                 </a>
