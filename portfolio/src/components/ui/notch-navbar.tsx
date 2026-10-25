@@ -1,12 +1,11 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowUpRight, Home, User, Calendar, Zap, CreditCard, Menu, X, Sun, Moon } from "lucide-react"
+import { Home, User, Calendar, Zap, CreditCard, Menu, X, Sun, Moon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/theme-toggle"
-import LogoIcon from '@/assets/logo/logo-icon'
+import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton"
 import { motion, AnimatePresence } from "framer-motion"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/layout/ThemeProvider"
 
 // Helper component for navigation links
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ComponentType<{ className?: string }>; label: string }) => (
@@ -21,14 +20,14 @@ const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.Compon
 
 // Simple Theme Toggle for Mobile
 const MobileThemeToggle = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
 
   if (!mounted) return <div className="w-9 h-9" />
 
-  const isDark = (theme === 'dark' || resolvedTheme === 'dark')
+  const isDark = theme !== "light"
 
   return (
     <button
@@ -116,7 +115,7 @@ export function NotchNavbar({ className, ...props }: React.HTMLAttributes<HTMLEl
               <div className="flex justify-center shrink-0 mx-2 md:mx-4 mt-1">
                 {props.logo || (
                   <Link href="/" className="flex items-center justify-center relative group">
-                    <LogoIcon className="w-7 h-7 text-foreground rotate-180 hover:scale-105 transition-transform relative z-10" />
+                    <Zap className="w-7 h-7 text-foreground rotate-180 hover:scale-105 transition-transform relative z-10" />
                   </Link>
                 )}
               </div>
@@ -128,7 +127,7 @@ export function NotchNavbar({ className, ...props }: React.HTMLAttributes<HTMLEl
                 ))}
                 
                 <div className="flex gap-4 pl-4 border-l border-foreground/10 shrink-0 items-center">
-                  <ThemeToggle />
+                  <ThemeToggleButton />
                   <Link href="/login" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors whitespace-nowrap">
                     Log in
                   </Link>
