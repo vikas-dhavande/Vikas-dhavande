@@ -1,14 +1,134 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
 import { account } from "@/lib/appwrite";
 import { clearCookieAction } from "@/app/actions";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 import { AuthModal } from "@/components/ui/AuthModal";
-import { RefreshCw } from "lucide-react";
+import {
+  BookOpen,
+  BriefcaseBusiness,
+  Code2,
+  GraduationCap,
+  RefreshCw,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { triggerWebsiteRefresh } from "@/components/ui/InitialWebLoader";
+
+interface NavLinkItem {
+  label: string;
+  href: string;
+  description?: string;
+  icon?: LucideIcon;
+}
+
+interface NavGroup {
+  label: string;
+  links: NavLinkItem[];
+}
+
+interface MegaMenuItem {
+  id: string;
+  label: string;
+  groups: NavGroup[];
+}
+
+const navItems: MegaMenuItem[] = [
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    groups: [
+      {
+        label: "About",
+        links: [
+          {
+            label: "Experience",
+            href: "#experience",
+            description: "Roles and experience across my career.",
+            icon: BriefcaseBusiness,
+          },
+          {
+            label: "Education",
+            href: "#education",
+            description: "Academic background and learning.",
+            icon: GraduationCap,
+          },
+        ],
+      },
+      {
+        label: "Expertise",
+        links: [
+          {
+            label: "Skills",
+            href: "#skills",
+            description: "Technologies and skills I work with.",
+            icon: Code2,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "work",
+    label: "Work",
+    groups: [
+      {
+        label: "Selected work",
+        links: [
+          {
+            label: "Projects",
+            href: "#projects",
+            description: "A selection of projects and experiments.",
+            icon: BriefcaseBusiness,
+          },
+          {
+            label: "Blog",
+            href: "/blog",
+            description: "Articles, notes, and ideas.",
+            icon: BookOpen,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "resources",
+    label: "Resources",
+    groups: [
+      {
+        label: "Explore",
+        links: [
+          {
+            label: "Resources",
+            href: "#resources",
+            description: "Useful resources and recommendations.",
+            icon: BookOpen,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "connect",
+    label: "Connect",
+    groups: [
+      {
+        label: "Around the web",
+        links: [
+          {
+            label: "Social",
+            href: "#social",
+            description: "Find me on social platforms.",
+            icon: Users,
+          },
+        ],
+      },
+    ],
+  },
+];
 
 interface AppwriteUser {
   $id: string;
@@ -40,8 +160,43 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   const [loading, setLoading] = useState(!initialUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const desktopNavRef = useRef<HTMLElement>(null);
+  const menuTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!desktopNavRef.current?.contains(event.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+        setOpenMobileSection(null);
+        mobileToggleRef.current?.focus();
+      }
+
+      if (openMenu) {
+        setOpenMenu(null);
+        menuTriggerRefs.current[openMenu]?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen, openMenu]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -151,15 +306,106 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             </span>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="#experience" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Experience</Link>
-            <Link href="#education" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Education</Link>
-            <Link href="#skills" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Skills</Link>
-            <Link href="#projects" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Projects</Link>
-            <Link href="#resources" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Resources</Link>
-            <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors duration-150 font-medium text-foreground/90">Blog</Link>
-            <Link href="#social" className="text-muted-foreground hover:text-foreground transition-colors duration-150">Social</Link>
+          {/* Desktop Mega Menu */}
+          <nav
+            ref={desktopNavRef}
+            aria-label="Primary navigation"
+            className="relative hidden items-center md:flex"
+            onMouseLeave={() => setOpenMenu(null)}
+          >
+            <ul className="flex items-center gap-1 text-sm">
+              {navItems.map((item) => {
+                const isOpen = openMenu === item.id;
+                const menuId = `${item.id}-mega-menu`;
+
+                return (
+                  <li
+                    key={item.id}
+                    className="relative"
+                    onMouseEnter={() => setOpenMenu(item.id)}
+                  >
+                    <button
+                      id={`${item.id}-trigger`}
+                      ref={(element) => {
+                        menuTriggerRefs.current[item.id] = element;
+                      }}
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={menuId}
+                      onClick={() => setOpenMenu(isOpen ? null : item.id)}
+                      className={`flex items-center gap-1 rounded-lg px-3 py-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        isOpen
+                          ? "bg-secondary text-foreground"
+                          : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+                      }`}
+                    >
+                      {item.label}
+                      <svg
+                        aria-hidden="true"
+                        className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path
+                          d="m5 7.5 5 5 5-5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+
+                    <div
+                      id={menuId}
+                      aria-labelledby={`${item.id}-trigger`}
+                      hidden={!isOpen}
+                      className="fixed inset-x-4 top-16 z-50 pt-3"
+                    >
+                      <div className="mx-auto grid max-w-4xl gap-6 rounded-2xl border border-border bg-card p-5 shadow-2xl sm:grid-cols-2">
+                        {item.groups.map((group) => (
+                          <section key={group.label} aria-label={group.label}>
+                            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              {group.label}
+                            </h2>
+                            <ul className="space-y-1">
+                              {group.links.map((link) => {
+                                const Icon = link.icon;
+                                return (
+                                  <li key={link.href}>
+                                    <Link
+                                      href={link.href}
+                                      onClick={() => setOpenMenu(null)}
+                                      className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    >
+                                      {Icon ? (
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors group-hover:text-foreground">
+                                          <Icon aria-hidden="true" className="h-4 w-4" />
+                                        </span>
+                                      ) : null}
+                                      <span className="min-w-0">
+                                        <span className="block text-sm font-medium text-foreground">
+                                          {link.label}
+                                        </span>
+                                        {link.description ? (
+                                          <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                                            {link.description}
+                                          </span>
+                                        ) : null}
+                                      </span>
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </section>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </nav>
         </div>
 
@@ -277,9 +523,13 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
           {/* Mobile Hamburger */}
           <button
+            ref={mobileToggleRef}
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle navigation menu"
-            className="md:hidden flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground md:hidden"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {mobileMenuOpen ? (
@@ -293,39 +543,105 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       </div>
 
       {/* ── Mobile Drawer ── */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background px-4 py-4 space-y-3">
-          <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <Link href="#experience" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Experience</Link>
-            <Link href="#education" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Education</Link>
-            <Link href="#skills" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Skills</Link>
-            <Link href="#projects" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Projects</Link>
-            <Link href="#resources" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
-            <Link href="/blog" className="py-2 hover:text-foreground font-medium text-primary" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
-            <Link href="#social" className="py-2 hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Social</Link>
-          </nav>
-          <div className="pt-2 border-t border-border">
-            {user ? (
-              <button
-                onClick={handleLogout}
-                disabled={isPending}
-                className="w-full text-center py-2 text-xs rounded-full border border-rose-500/40 text-rose-500 disabled:opacity-50"
-              >
-                {isPending ? "Signing out…" : "Sign Out"}
-              </button>
-            ) : (
-              <AuthModal
-                onAuthSuccess={handleAuthSuccess}
-                trigger={
-                  <button className="block w-full text-center py-2 text-xs rounded-full border border-border bg-secondary text-foreground cursor-pointer">
-                    Login
+      <div
+        id="mobile-navigation"
+        hidden={!mobileMenuOpen}
+        className="space-y-3 border-t border-border bg-background px-4 py-4 md:hidden"
+      >
+        <nav aria-label="Mobile primary navigation" className="text-sm">
+          {navItems.map((item) => {
+            const isOpen = openMobileSection === item.id;
+            const sectionId = `mobile-${item.id}-links`;
+
+            return (
+              <section key={item.id} className="border-b border-border last:border-b-0">
+                <h2>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={sectionId}
+                    onClick={() => setOpenMobileSection(isOpen ? null : item.id)}
+                    className="flex w-full items-center justify-between py-3 text-left font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {item.label}
+                    <svg
+                      aria-hidden="true"
+                      className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="m5 7.5 5 5 5-5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </button>
-                }
-              />
-            )}
-          </div>
+                </h2>
+                <div id={sectionId} hidden={!isOpen} className="pb-3 pl-2">
+                  {item.groups.map((group) => (
+                    <div key={group.label} className="pb-3 last:pb-0">
+                      <h3 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {group.label}
+                      </h3>
+                      {group.links.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setOpenMobileSection(null);
+                            }}
+                            className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {Icon ? (
+                              <Icon aria-hidden="true" className="h-4 w-4 shrink-0" />
+                            ) : null}
+                            <span>
+                              <span className="block text-sm font-medium text-foreground">
+                                {link.label}
+                              </span>
+                              {link.description ? (
+                                <span className="mt-0.5 block text-xs text-muted-foreground">
+                                  {link.description}
+                                </span>
+                              ) : null}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </nav>
+        <div className="border-t border-border pt-2">
+          {user ? (
+            <button
+              onClick={handleLogout}
+              disabled={isPending}
+              className="w-full rounded-full border border-rose-500/40 py-2 text-center text-xs text-rose-500 disabled:opacity-50"
+            >
+              {isPending ? "Signing out…" : "Sign Out"}
+            </button>
+          ) : (
+            <AuthModal
+              onAuthSuccess={handleAuthSuccess}
+              trigger={
+                <button className="block w-full cursor-pointer rounded-full border border-border bg-secondary py-2 text-center text-xs text-foreground">
+                  Login
+                </button>
+              }
+            />
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }
