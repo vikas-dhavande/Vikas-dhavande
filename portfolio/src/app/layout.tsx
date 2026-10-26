@@ -3,6 +3,7 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { Navbar } from "@/components/layout/Navbar";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -134,6 +135,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
         <ThemeProvider initialTheme="light">
           <InitialWebLoader />
+          <Navbar />
           {children}
         </ThemeProvider>
         <SpeedInsights />

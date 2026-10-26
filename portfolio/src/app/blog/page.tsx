@@ -5,7 +5,6 @@ import Link from "next/link";
 import { BlogPost } from "@/lib/blog-types";
 import { getBlogPosts } from "@/lib/blog-service";
 import { BlogCard } from "@/components/blog/BlogCard";
-import { Navbar } from "@/components/layout/Navbar";
 import { Search, Sparkles, SlidersHorizontal, ArrowLeft, BookOpen, Layers } from "lucide-react";
 
 const CATEGORIES = [
@@ -69,8 +68,6 @@ export default function BlogIndexPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
-      <Navbar />
-
       {/* ── Header / Breadcrumb Bar ── */}
       <div className="border-b border-border/80 bg-background/60 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
