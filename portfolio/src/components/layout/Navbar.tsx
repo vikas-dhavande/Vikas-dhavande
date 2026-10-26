@@ -8,12 +8,14 @@ import { clearCookieAction } from "@/app/actions";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 import { AuthModal } from "@/components/ui/AuthModal";
 import {
+  Award,
   BookOpen,
   BriefcaseBusiness,
   Code2,
   GraduationCap,
   RefreshCw,
   Users,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { triggerWebsiteRefresh } from "@/components/ui/InitialWebLoader";
@@ -67,6 +69,12 @@ const navItems: MegaMenuItem[] = [
             description: "Technologies and skills I work with.",
             icon: Code2,
           },
+          {
+            label: "Certificates & Licenses",
+            href: "#certificates",
+            description: "Professional certifications and licenses I hold.",
+            icon: Award,
+          },
         ],
       },
     ],
@@ -89,6 +97,23 @@ const navItems: MegaMenuItem[] = [
             href: "/blog",
             description: "Articles, notes, and ideas.",
             icon: BookOpen,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tools",
+    label: "Tools",
+    groups: [
+      {
+        label: "Utilities",
+        links: [
+          {
+            label: "Tools",
+            href: "/tools",
+            description: "Handy tools and utilities I've built and use.",
+            icon: Wrench,
           },
         ],
       },
@@ -168,10 +193,76 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   const menuTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const mobileToggleRef = useRef<HTMLButtonElement>(null);
 
+  // ── Hover intent: small delay before closing so diagonal mouse moves don't kill the menu ──
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const openNow = (id: string) => {
+    cancelClose();
+    setOpenMenu(id);
+  };
+
+  const closeSoon = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 150);
+  };
+
+  const closeNow = () => {
+    cancelClose();
+    setOpenMenu(null);
+  };
+
+  useEffect(() => {
+    return () => cancelClose();
+  }, []);
+
+  // ── User dropdown: close on outside click, Escape, or when the mouse moves away ──
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const userCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelUserClose = () => {
+    if (userCloseTimer.current) {
+      clearTimeout(userCloseTimer.current);
+      userCloseTimer.current = null;
+    }
+  };
+
+  const closeUserSoon = () => {
+    cancelUserClose();
+    userCloseTimer.current = setTimeout(() => setDropdownOpen(false), 250);
+  };
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!userMenuRef.current?.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDropdownOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      cancelUserClose();
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [dropdownOpen]);
+
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
       if (!desktopNavRef.current?.contains(event.target as Node)) {
-        setOpenMenu(null);
+        closeNow();
       }
     };
 
@@ -185,7 +276,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       }
 
       if (openMenu) {
-        setOpenMenu(null);
+        closeNow();
         menuTriggerRefs.current[openMenu]?.focus();
       }
     };
@@ -232,7 +323,8 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
     // Auto-sync session when tab receives focus (e.g. after popup or external auth)
     const handleFocus = () => {
-      const hasSession = (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
+      const hasSession =
+        (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
         (typeof document !== "undefined" && document.cookie.includes("auth_user"));
       if (hasSession && account && typeof account.get === "function") {
         account
@@ -248,7 +340,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser]);
 
   const refreshUser = () => {
@@ -291,13 +383,13 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl transition-colors duration-200">
-      <div className="flex w-full items-center justify-between px-4 lg:px-8 h-16">
+      <div className="flex h-14 w-full items-center justify-between px-4 lg:px-8">
 
         {/* ── Brand / Logo ── */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="flex h-full items-center gap-8">
+          <Link href="/" className="group flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-sm transition-transform duration-200 group-hover:scale-105">
-              <div className="h-full w-full rounded-full bg-card flex items-center justify-center">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-card">
                 <span className="font-mono text-sm font-black text-foreground">V</span>
               </div>
             </div>
@@ -306,14 +398,17 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             </span>
           </Link>
 
-          {/* Desktop Mega Menu */}
+          {/* Desktop Mega Menu
+              FIX 1: nav / ul / li all stretch to the full header height (h-14),
+              so the hover area touches the top of the dropdown (no dead zone). */}
           <nav
             ref={desktopNavRef}
             aria-label="Primary navigation"
-            className="relative hidden items-center md:flex"
-            onMouseLeave={() => setOpenMenu(null)}
+            className="relative hidden h-14 items-center md:flex"
+            onMouseEnter={cancelClose}
+            onMouseLeave={closeSoon}
           >
-            <ul className="flex items-center gap-1 text-sm">
+            <ul className="flex h-full items-center gap-1 text-sm">
               {navItems.map((item) => {
                 const isOpen = openMenu === item.id;
                 const menuId = `${item.id}-mega-menu`;
@@ -321,8 +416,8 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                 return (
                   <li
                     key={item.id}
-                    className="relative"
-                    onMouseEnter={() => setOpenMenu(item.id)}
+                    className="relative flex h-full items-center"
+                    onMouseEnter={() => openNow(item.id)}
                   >
                     <button
                       id={`${item.id}-trigger`}
@@ -332,7 +427,9 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                       type="button"
                       aria-expanded={isOpen}
                       aria-controls={menuId}
-                      onClick={() => setOpenMenu(isOpen ? null : item.id)}
+                      // FIX 2: click only opens (hover already opened it) — no more
+                      // "hover opens, click closes" flicker.
+                      onClick={() => openNow(item.id)}
                       className={`flex items-center gap-1 rounded-lg px-3 py-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                         isOpen
                           ? "bg-secondary text-foreground"
@@ -356,13 +453,24 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                       </svg>
                     </button>
 
+                    {/* FIX 3: wrapper is click-through (pointer-events-none) so its
+                        transparent side margins don't block the page; only the card
+                        (pointer-events-auto) is interactive. The ::before is an
+                        invisible bridge above the card. */}
                     <div
                       id={menuId}
                       aria-labelledby={`${item.id}-trigger`}
                       hidden={!isOpen}
-                      className="fixed inset-x-4 top-16 z-50 pt-3"
+                      className={`absolute left-0 top-full z-50 max-w-[calc(100vw-2rem)] ${
+                        item.groups.length > 1 ? "w-[34rem]" : "w-80"
+                      }`}
                     >
-                      <div className="mx-auto grid max-w-4xl gap-6 rounded-2xl border border-border bg-card p-5 shadow-2xl sm:grid-cols-2">
+                      <div
+                        className={`grid gap-6 rounded-b-2xl rounded-t-none border border-t-0 border-border bg-card p-5 shadow-2xl ${
+                          item.groups.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                        }`}
+                        onMouseEnter={cancelClose}
+                      >
                         {item.groups.map((group) => (
                           <section key={group.label} aria-label={group.label}>
                             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -375,7 +483,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                                   <li key={link.href}>
                                     <Link
                                       href={link.href}
-                                      onClick={() => setOpenMenu(null)}
+                                      onClick={closeNow}
                                       className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     >
                                       {Icon ? (
@@ -420,7 +528,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             onClick={handleRefresh}
             disabled={refreshing}
             title="Refresh animation pipeline & API cache"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary/80 text-muted-foreground hover:text-foreground hover:border-foreground/20 hover:bg-muted transition-all duration-150 cursor-pointer disabled:opacity-50"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-secondary/80 text-muted-foreground transition-all duration-150 hover:border-foreground/20 hover:bg-muted hover:text-foreground disabled:opacity-50"
             aria-label="Refresh animation rendering and API cache"
           >
             <RefreshCw
@@ -431,75 +539,84 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
           </button>
 
           {loading ? (
-            <div className="h-8 w-20 rounded-full bg-muted animate-pulse" />
+            <div className="h-8 w-20 animate-pulse rounded-full bg-muted" />
           ) : user ? (
             /* ── Logged-In: Blobatar avatar + dropdown ── */
-            <div className="relative">
+            <div
+              ref={userMenuRef}
+              className="relative"
+              onMouseEnter={cancelUserClose}
+              onMouseLeave={closeUserSoon}
+            >
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2.5 rounded-full p-1 pl-2 border border-border bg-secondary/80 hover:border-foreground/20 transition-all cursor-pointer"
+                aria-expanded={dropdownOpen}
+                aria-haspopup="menu"
+                className="flex cursor-pointer items-center gap-2.5 rounded-full border border-border bg-secondary/80 p-1 pl-2 transition-all hover:border-foreground/20"
               >
-                <div className="hidden sm:flex flex-col text-right leading-tight pr-1">
+                <div className="hidden flex-col pr-1 text-right leading-tight sm:flex">
                   <span className="text-xs font-semibold text-foreground">{user.name}</span>
                   <span className="text-[10px] text-muted-foreground">{roleName}</span>
                 </div>
                 {/* Blobatar — deterministic avatar seeded by user name, animates on hover */}
-                <div className="relative h-8 w-8 rounded-full overflow-hidden border border-border flex-shrink-0">
-                  <Blobatar
-                    name={avatarSeed ?? user.name}
-                    animate="hover"
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                  {/* Online indicator */}
-                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+                <div className="relative h-8 w-8 flex-shrink-0">
+                  <div className="h-full w-full overflow-hidden rounded-full">
+                    <Blobatar
+                      name={avatarSeed ?? user.name}
+                      animate="hover"
+                      style={{ width: "100%", height: "100%", display: "block" }}
+                    />
+                  </div>
+                  {/* Online indicator (outside the clipped wrapper so it isn't cut off) */}
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500" />
                 </div>
               </button>
 
               {/* User Dropdown */}
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-border bg-card p-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 z-50">
+                <div className="absolute right-0 z-50 mt-2 w-56 animate-in fade-in zoom-in-95 rounded-2xl border border-border bg-card p-2 shadow-2xl backdrop-blur-xl">
                   {/* User info header */}
-                  <div className="px-3 py-2 border-b border-border mb-1 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full overflow-hidden border border-border flex-shrink-0">
+                  <div className="mb-1 flex items-center gap-3 border-b border-border px-3 py-2">
+                    <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-border">
                       <Blobatar
                         name={avatarSeed ?? user.name}
                         animate="hover"
                         style={{ width: "100%", height: "100%" }}
                       />
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{user.name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                    <div className="flex min-w-0 flex-col">
+                      <p className="truncate text-xs font-semibold text-foreground">{user.name}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
                     <Link
                       href="/profile"
-                      className="rounded-lg px-3 py-2 hover:bg-secondary hover:text-foreground transition-colors"
+                      className="rounded-lg px-3 py-2 transition-colors hover:bg-secondary hover:text-foreground"
                       onClick={() => setDropdownOpen(false)}
                     >
                       Profile &amp; Account
                     </Link>
                     <a
                       href="#settings"
-                      className="rounded-lg px-3 py-2 hover:bg-secondary hover:text-foreground transition-colors"
+                      className="rounded-lg px-3 py-2 transition-colors hover:bg-secondary hover:text-foreground"
                       onClick={() => setDropdownOpen(false)}
                     >
                       Workspace Settings
                     </a>
                     <a
                       href="#billing"
-                      className="rounded-lg px-3 py-2 hover:bg-secondary hover:text-foreground transition-colors"
+                      className="rounded-lg px-3 py-2 transition-colors hover:bg-secondary hover:text-foreground"
                       onClick={() => setDropdownOpen(false)}
                     >
                       Billing &amp; Subscription
                     </a>
                   </div>
-                  <div className="mt-1 pt-1 border-t border-border">
+                  <div className="mt-1 border-t border-border pt-1">
                     <button
                       onClick={handleLogout}
                       disabled={isPending}
-                      className="w-full text-left rounded-lg px-3 py-2 text-xs font-medium text-[#E11D48] hover:bg-[#E11D48]/10 transition-colors cursor-pointer disabled:opacity-50"
+                      className="w-full cursor-pointer rounded-lg px-3 py-2 text-left text-xs font-medium text-[#E11D48] transition-colors hover:bg-[#E11D48]/10 disabled:opacity-50"
                     >
                       {isPending ? "Signing out…" : "Sign Out"}
                     </button>
@@ -512,11 +629,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
             <div className="flex items-center gap-2 sm:gap-3">
               <AuthModal
                 onAuthSuccess={handleAuthSuccess}
-                trigger={
-                  <button className="btn-pill-primary">
-                    Login
-                  </button>
-                }
+                trigger={<button className="btn-pill-primary">Login</button>}
               />
             </div>
           )}
