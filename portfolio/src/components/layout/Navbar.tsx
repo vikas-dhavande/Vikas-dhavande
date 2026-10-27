@@ -301,41 +301,22 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       return;
     }
 
-    // Only query Appwrite if there is an existing session token/cookie/local cache
-    // to avoid logging 401 errors to the browser console for guest visitors
-    const hasCachedUser = typeof window !== "undefined" && !!localStorage.getItem("auth_user");
-    const hasAuthCookie = typeof document !== "undefined" && document.cookie.includes("auth_user");
-
-    if ((hasCachedUser || hasAuthCookie) && account && typeof account.get === "function") {
-      account
-        .get()
-        .then((u) => {
-          setUser(u as AppwriteUser);
-          // Sync avatar seed from localStorage if not already set via cookie
-          const stored = localStorage.getItem("avatar_seed");
-          if (stored && !avatarSeed) setAvatarSeed(stored);
-        })
-        .catch(() => setUser(null))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    account
+      .get()
+      .then((u) => {
+        setUser(u as AppwriteUser);
+        const stored = localStorage.getItem("avatar_seed");
+        if (stored && !avatarSeed) setAvatarSeed(stored);
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
 
     // Auto-sync session when tab receives focus (e.g. after popup or external auth)
     const handleFocus = () => {
-      const hasSession =
-        (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
-        (typeof document !== "undefined" && document.cookie.includes("auth_user"));
-      if (hasSession && account && typeof account.get === "function") {
-        account
-          .get()
-          .then((u) => {
-            setUser(u as AppwriteUser);
-            const stored = localStorage.getItem("avatar_seed");
-            if (stored) setAvatarSeed(stored);
-          })
-          .catch(() => {});
-      }
+      account
+        .get()
+        .then((u) => setUser(u as AppwriteUser))
+        .catch(() => {});
     };
 
     window.addEventListener("focus", handleFocus);
