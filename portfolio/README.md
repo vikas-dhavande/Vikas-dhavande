@@ -32,7 +32,8 @@ portfolio/
 - **Homepage sections and shared site layout:** use `src/components/layout/`.
 - **Blog-specific presentation:** use `src/components/blog/`.
 - **Reusable UI primitives:** use `src/components/ui/`; composed blocks and
-  animations belong in `src/components/shadcn-space/`.
+  animations belong in `src/components/shadcn-space/`. The `blog-component-15`
+  block is available at `/blog-component-15`.
 - **Portfolio and blog seed content:** update the JSON files in `src/data/`.
 - **Data access and shared logic:** use `src/lib/`; keep data types alongside
   their domain service.
@@ -58,6 +59,7 @@ back to the local blog JSON. Shared Appwrite client setup lives in
 | `/` | `src/app/page.tsx` |
 | `/blog` | `src/app/blog/page.tsx` |
 | `/blog/[slug]` | `src/app/blog/[slug]/page.tsx` |
+| `/blog-component-15` | `src/app/blog-component-15/page.tsx` |
 | `/profile` | `src/app/profile/page.tsx` |
 | `/auth/oauth-callback` | `src/app/auth/oauth-callback/page.tsx` |
 | `/api/refresh` | `src/app/api/refresh/route.ts` |
