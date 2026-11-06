@@ -1,0 +1,7 @@
+name: Alpha Vantage MCP Server
+version: 1.0
+schema: v1
+mcpServers:
+  - name: alphavantage
+    type: streamable-http
+    url: https://mcp.alphavantage.co/mcp?apikey=${ALPHAVANTAGE_API_KEY}
