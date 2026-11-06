@@ -78,6 +78,12 @@ settings are optional; without them the local blog data is used. Portfolio
 database settings are also optional. Variables prefixed with `NEXT_PUBLIC_`
 are exposed to the browser and must not contain secrets.
 
+The `/profile` page requires an Appwrite account session. To enable profile
+image uploads, create an Appwrite Storage bucket with file security enabled,
+allow authenticated users to create files, and set
+`NEXT_PUBLIC_APPWRITE_PROFILE_BUCKET_ID` to its ID. Uploaded profile images are
+publicly readable; each user can update or delete their own image.
+
 Other available commands:
 
 ```bash

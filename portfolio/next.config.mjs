@@ -34,6 +34,9 @@ const nextConfig = {
   ],
   experimental: {
     useCache: true,
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
     cacheLife: {
       seconds: {
         stale: 5,

@@ -322,24 +322,33 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
     }
 
     // Auto-sync session when tab receives focus (e.g. after popup or external auth)
+    const syncSession = () => {
+      account
+        .get()
+        .then((u) => {
+          setUser(u as AppwriteUser);
+          const stored = localStorage.getItem("avatar_seed");
+          if (stored) setAvatarSeed(stored);
+        })
+        .catch(() => setUser(null));
+    };
+
     const handleFocus = () => {
       const hasSession =
         (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
         (typeof document !== "undefined" && document.cookie.includes("auth_user"));
       if (hasSession && account && typeof account.get === "function") {
-        account
-          .get()
-          .then((u) => {
-            setUser(u as AppwriteUser);
-            const stored = localStorage.getItem("avatar_seed");
-            if (stored) setAvatarSeed(stored);
-          })
-          .catch(() => {});
+        syncSession();
       }
     };
 
+    const handleAuthChanged = () => syncSession();
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+    window.addEventListener("appwrite-auth-changed", handleAuthChanged);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("appwrite-auth-changed", handleAuthChanged);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUser]);
 
@@ -590,6 +599,13 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+                    <Link
+                      href="/dashboard"
+                      className="rounded-lg px-3 py-2 transition-colors hover:bg-secondary hover:text-foreground"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
                     <Link
                       href="/profile"
                       className="rounded-lg px-3 py-2 transition-colors hover:bg-secondary hover:text-foreground"

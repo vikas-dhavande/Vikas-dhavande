@@ -1,4 +1,4 @@
-import { Client, Account, Databases, ID, Models } from "appwrite";
+import { Client, Account, Databases, ID, Models, Storage } from "appwrite";
 
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://sfo.cloud.appwrite.io/v1";
 const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "6ad0f8ab0025a03812f7";
@@ -9,6 +9,7 @@ const client = new Client()
 
 const account = new Account(client);
 const databases = new Databases(client);
+const storage = new Storage(client);
 
 /**
  * Sign in with email and password.
@@ -151,6 +152,7 @@ export {
   client,
   account,
   databases,
+  storage,
   signInWithEmail,
   signUpWithEmail,
   signInWithGithub,
