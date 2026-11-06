@@ -16,21 +16,22 @@ export async function getPortfolioData(): Promise<PortfolioData> {
       if (response && response.documents && response.documents.length > 0) {
         // Look for custom config document or merge documents
         const configDoc = response.documents[0] as unknown as Partial<PortfolioData>;
+        const defaultData = defaultPortfolioData as unknown as PortfolioData;
         return {
-          ...(defaultPortfolioData as unknown as PortfolioData),
+          ...defaultData,
           ...configDoc,
-          name: configDoc.name || defaultPortfolioData.name,
-          title: configDoc.title || defaultPortfolioData.title,
-          bio: configDoc.bio || defaultPortfolioData.bio,
-          email: configDoc.email || defaultPortfolioData.email,
-          phone: configDoc.phone || defaultPortfolioData.phone,
-          location: configDoc.location || defaultPortfolioData.location,
-          experiences: (configDoc.experiences as any) || (defaultPortfolioData.experiences as any),
-          education: (configDoc.education as any) || (defaultPortfolioData.education as any),
-          skillCategories: (configDoc.skillCategories as any) || (defaultPortfolioData.skillCategories as any),
-          projects: (configDoc.projects as any) || (defaultPortfolioData.projects as any),
-          resources: (configDoc.resources as any) || (defaultPortfolioData.resources as any),
-          socials: (configDoc.socials as any) || (defaultPortfolioData.socials as any),
+          name: configDoc.name || defaultData.name,
+          title: configDoc.title || defaultData.title,
+          bio: configDoc.bio || defaultData.bio,
+          email: configDoc.email || defaultData.email,
+          phone: configDoc.phone || defaultData.phone,
+          location: configDoc.location || defaultData.location,
+          experiences: configDoc.experiences || defaultData.experiences,
+          education: configDoc.education || defaultData.education,
+          skillCategories: configDoc.skillCategories || defaultData.skillCategories,
+          projects: configDoc.projects || defaultData.projects,
+          resources: configDoc.resources || defaultData.resources,
+          socials: configDoc.socials || defaultData.socials,
         };
       }
     } catch {

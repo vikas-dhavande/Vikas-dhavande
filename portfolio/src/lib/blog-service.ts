@@ -9,41 +9,55 @@ const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_BLOG_COLLECTION_ID;
 /**
  * Normalizes an Appwrite document or JSON object into a typed BlogPost.
  */
-function normalizePost(doc: any): BlogPost {
-  let authorObj = doc.author;
-  if (typeof authorObj === "string") {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getString(value: unknown, fallback: string): string {
+  return typeof value === "string" && value ? value : fallback;
+}
+
+function normalizePost(doc: Record<string, unknown>): BlogPost {
+  let authorValue = doc.author;
+  if (typeof authorValue === "string") {
     try {
-      authorObj = JSON.parse(authorObj);
+      authorValue = JSON.parse(authorValue);
     } catch {
-      authorObj = { name: authorObj, role: "Engineering Contributor" };
+      authorValue = { name: authorValue, role: "Engineering Contributor" };
     }
   }
 
-  let tagsArr = doc.tags;
-  if (typeof tagsArr === "string") {
+  let tagsValue = doc.tags;
+  if (typeof tagsValue === "string") {
+    const rawTags = tagsValue;
     try {
-      tagsArr = JSON.parse(tagsArr);
+      tagsValue = JSON.parse(rawTags);
     } catch {
-      tagsArr = tagsArr.split(",").map((t: string) => t.trim());
+      tagsValue = rawTags.split(",").map((tag) => tag.trim());
     }
   }
+
+  const author = isRecord(authorValue) ? authorValue : {};
+  const tags = Array.isArray(tagsValue)
+    ? tagsValue.filter((tag): tag is string => typeof tag === "string")
+    : ["Avionics", "Engineering"];
 
   return {
-    $id: doc.$id || doc.id || ID.unique(),
-    title: doc.title || "Untitled Article",
-    slug: doc.slug || "untitled-article",
-    excerpt: doc.excerpt || "",
-    content: doc.content || "",
-    category: doc.category || "Engineering",
-    publishedAt: doc.publishedAt || doc.$createdAt || new Date().toISOString(),
+    $id: getString(doc.$id, "") || getString(doc.id, "") || ID.unique(),
+    title: getString(doc.title, "Untitled Article"),
+    slug: getString(doc.slug, "untitled-article"),
+    excerpt: getString(doc.excerpt, ""),
+    content: getString(doc.content, ""),
+    category: getString(doc.category, "Engineering"),
+    publishedAt: getString(doc.publishedAt, getString(doc.$createdAt, new Date().toISOString())),
     readTimeMinutes: Number(doc.readTimeMinutes) || 5,
     featured: Boolean(doc.featured),
-    coverImage: doc.coverImage || undefined,
-    tags: Array.isArray(tagsArr) ? tagsArr : ["Avionics", "Engineering"],
+    coverImage: typeof doc.coverImage === "string" ? doc.coverImage : undefined,
+    tags,
     author: {
-      name: authorObj?.name || "Vikas N Dhavande",
-      role: authorObj?.role || "Lead Avionics & Product Engineer",
-      avatar: authorObj?.avatar || "/avatar.png",
+      name: getString(author.name, "Vikas N Dhavande"),
+      role: getString(author.role, "Lead Avionics & Product Engineer"),
+      avatar: getString(author.avatar, "/avatar.png"),
     },
   };
 }
@@ -110,7 +124,7 @@ export async function getBlogPosts(options?: BlogFilterOptions): Promise<BlogPos
   }
 
   // Resilient fallback to local seed data
-  const localList = (defaultBlogPosts as any[]).map(normalizePost);
+  const localList = defaultBlogPosts.map(normalizePost);
   return filterLocalPosts(localList, options);
 }
 
@@ -133,7 +147,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     }
   }
 
-  const localList = (defaultBlogPosts as any[]).map(normalizePost);
+  const localList = defaultBlogPosts.map(normalizePost);
   const found = localList.find((p) => p.slug.toLowerCase() === slug.toLowerCase());
   return found || null;
 }

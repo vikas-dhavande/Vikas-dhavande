@@ -72,7 +72,7 @@ interface NodeConfig {
   id: string;
   x: number;
   y: number;
-  icon?: any;
+  icon?: typeof ChatCircle;
   label?: string;
   type: 'box' | 'circle';
 }
@@ -476,7 +476,7 @@ export function Card2() {
    Card3 – Stacked Infinite-Scroll Activity Feed
    ───────────────────────────────────────────── */
 
-const STATUS_ICONS: Record<string, { icon: any; color: string; bg: string; gradient: string; border: string }> = {
+const STATUS_ICONS: Record<string, { icon: typeof Check; color: string; bg: string; gradient: string; border: string }> = {
   done: { icon: Check, color: "text-lime-500", bg: "bg-lime-500/15", gradient: "bg-gradient-to-b from-lime-400 to-lime-600", border: "border-lime-600" },
   running: { icon: CircleNotch, color: "text-blue-400", bg: "bg-blue-400/15", gradient: "bg-gradient-to-b from-blue-400 to-blue-600", border: "border-blue-600" },
   waiting: { icon: Clock, color: "text-amber-400", bg: "bg-amber-400/15", gradient: "bg-gradient-to-b from-amber-400 to-amber-600", border: "border-amber-600" },
