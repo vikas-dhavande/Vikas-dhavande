@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTheme } from "@/components/layout/ThemeProvider";
 
@@ -20,6 +21,40 @@ const LOCATION = "Bengaluru, India";
 
 // Sizes the first name to fill ~92% of the viewport width.
 const fontSizeVw = 92 / (FIRST_NAME.length * 0.55);
+
+const istFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+
+// Live IST clock. Starts empty and fills in after mount to avoid hydration mismatch.
+function ISTClock() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const tick = () => setTime(istFormatter.format(new Date()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <p
+      className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em]"
+      aria-label="Current time in India Standard Time"
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-60" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-current" />
+      </span>
+      <span className="tabular-nums">{time || "--:--:--"}</span>
+      <span className="opacity-60">IST</span>
+    </p>
+  );
+}
 
 export function IntroHeroSection() {
   const { theme } = useTheme();
@@ -60,7 +95,12 @@ export function IntroHeroSection() {
         </span>
       </h1>
 
-      {/* 3. Bottom info: stacked on mobile, corners on desktop */}
+      {/* 3. Top bar: IST clock */}
+      <header className="absolute inset-x-0 top-0 z-[5] flex items-center justify-between px-6 py-6 text-foreground md:px-8">
+        <ISTClock />
+      </header>
+
+      {/* 4. Bottom info: stacked on mobile, corners on desktop */}
       <div className="absolute inset-x-6 bottom-6 z-[5] flex flex-col gap-3 text-foreground md:inset-x-8 md:flex-row md:items-end md:justify-between">
         <p className="order-2 text-[11px] font-medium uppercase tracking-[0.18em] md:order-1">
           {LOCATION}
