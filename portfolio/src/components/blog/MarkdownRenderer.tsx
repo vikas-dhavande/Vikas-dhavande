@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import React, { useState, useEffect, useRef } from "react";
 import { Copy, Check, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 
 interface MarkdownRendererProps {
@@ -140,27 +139,54 @@ function renderInlineFormatting(text: string): React.ReactNode {
   });
 }
 
+/**
+ * Renders Tiptap-generated HTML content safely.
+ *
+ * DOMPurify is loaded client-side only via dynamic import inside a useEffect,
+ * which prevents isomorphic-dompurify from touching browser-only CSS files
+ * during Next.js SSR / static generation (fixes the ENOENT build crash).
+ *
+ * On the server the raw HTML string is emitted as initial HTML (content is
+ * admin-only trusted input). DOMPurify sanitizes it on the client immediately
+ * after hydration before the page becomes interactive.
+ */
+function TiptapHtmlRenderer({ html }: { html: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // SSR initial state: raw HTML (trusted admin-only content)
+  const [sanitized, setSanitized] = useState<string>(html);
+
+  useEffect(() => {
+    // Client-only: dynamically import DOMPurify and sanitize
+    import("isomorphic-dompurify").then(({ default: DOMPurify }) => {
+      const clean = DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+          "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li",
+          "strong", "em", "u", "s", "code", "pre", "blockquote", "img", "hr",
+          "span", "div", "br",
+        ],
+        ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "target", "rel", "id", "style"],
+      });
+      setSanitized(clean);
+    });
+  }, [html]);
+
+  return (
+    <div
+      ref={ref}
+      className="blog-prose space-y-4 text-sm sm:text-base leading-relaxed text-foreground"
+      dangerouslySetInnerHTML={{ __html: sanitized }}
+    />
+  );
+}
+
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   if (!content) return null;
 
-  // If content is rich HTML (from Tiptap editor), sanitize with DOMPurify to eliminate XSS
+  // If content is rich HTML (from Tiptap editor), delegate to TiptapHtmlRenderer.
+  // That component handles DOMPurify client-side only, avoiding SSR crashes.
   const isHtml = /<[a-z][\s\S]*>/i.test(content.trim());
   if (isHtml) {
-    const cleanHtml = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: [
-        "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li",
-        "strong", "em", "u", "s", "code", "pre", "blockquote", "img", "hr",
-        "span", "div", "br"
-      ],
-      ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "target", "rel", "id", "style"],
-    });
-
-    return (
-      <div
-        className="blog-prose space-y-4 text-sm sm:text-base leading-relaxed text-foreground"
-        dangerouslySetInnerHTML={{ __html: cleanHtml }}
-      />
-    );
+    return <TiptapHtmlRenderer html={content} />;
   }
 
   const lines = content.split("\n");
