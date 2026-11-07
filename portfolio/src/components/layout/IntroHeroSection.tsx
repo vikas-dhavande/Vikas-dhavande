@@ -15,12 +15,11 @@ const WaveGridBackground = dynamic(
 
 const FIRST_NAME = "Vikas";
 const LAST_NAME = "Dhavande";
-const FULL_NAME = `${FIRST_NAME} ${LAST_NAME}`;
 const ROLE_LINES = ["Product Engineer", "Building Products End to End"];
 const LOCATION = "Bengaluru, India";
 
 // Sizes the first name to fill ~92% of the viewport width.
-const fontSizeVw = 92 / (FIRST_NAME.length * 0.6);
+const fontSizeVw = 92 / (FIRST_NAME.length * 0.55);
 
 export function IntroHeroSection() {
   const { theme } = useTheme();
@@ -56,22 +55,24 @@ export function IntroHeroSection() {
         >
           {FIRST_NAME}
         </span>
-        <span className="mt-[1.5vw] block text-[clamp(1rem,3vw,2.5rem)] font-light uppercase leading-none tracking-[0.3em]">
+        <span className="mt-[1.5vw] block text-[clamp(1.1rem,3vw,2.5rem)] font-light uppercase leading-none tracking-[0.3em]">
           {LAST_NAME}
         </span>
       </h1>
 
-      {/* 4. Bottom corners */}
-      <p className="absolute bottom-6 left-6 z-[5] text-[11px] font-medium uppercase tracking-[0.18em] text-foreground md:left-8">
-        {LOCATION}
-      </p>
-      <p className="absolute bottom-6 right-6 z-[5] text-right text-2xl font-light leading-[1.1] tracking-tight text-foreground md:right-8 md:text-5xl">
-        {ROLE_LINES.map((line) => (
-          <span key={line} className="block">
-            {line}
-          </span>
-        ))}
-      </p>
+      {/* 3. Bottom info: stacked on mobile, corners on desktop */}
+      <div className="absolute inset-x-6 bottom-6 z-[5] flex flex-col gap-3 text-foreground md:inset-x-8 md:flex-row md:items-end md:justify-between">
+        <p className="order-2 text-[11px] font-medium uppercase tracking-[0.18em] md:order-1">
+          {LOCATION}
+        </p>
+        <p className="order-1 text-left text-xl font-light leading-[1.1] tracking-tight sm:text-3xl md:order-2 md:text-right md:text-5xl">
+          {ROLE_LINES.map((line) => (
+            <span key={line} className="block">
+              {line}
+            </span>
+          ))}
+        </p>
+      </div>
     </section>
   );
 }
