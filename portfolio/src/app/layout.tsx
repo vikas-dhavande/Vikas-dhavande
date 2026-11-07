@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -140,6 +141,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </ThemeProvider>
         <SpeedInsights />
         <Analytics />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
