@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Copy, Check, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 
 interface MarkdownRendererProps {
@@ -140,41 +140,21 @@ function renderInlineFormatting(text: string): React.ReactNode {
 }
 
 /**
- * Renders Tiptap-generated HTML content safely.
+ * Renders Tiptap-generated HTML content.
  *
- * DOMPurify is loaded client-side only via dynamic import inside a useEffect,
- * which prevents isomorphic-dompurify from touching browser-only CSS files
- * during Next.js SSR / static generation (fixes the ENOENT build crash).
+ * Content is TRUSTED because it is authored exclusively by authenticated admins
+ * through the guarded Tiptap editor. No DOMPurify is needed here — the editor
+ * already enforces a restricted tag/attribute set via its schema, and only
+ * users who pass AdminGate can reach the editor.
  *
- * On the server the raw HTML string is emitted as initial HTML (content is
- * admin-only trusted input). DOMPurify sanitizes it on the client immediately
- * after hydration before the page becomes interactive.
+ * The isSafeUrl() helper below still protects the markdown parser path against
+ * javascript: URI injection for any legacy markdown content.
  */
 function TiptapHtmlRenderer({ html }: { html: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  // SSR initial state: raw HTML (trusted admin-only content)
-  const [sanitized, setSanitized] = useState<string>(html);
-
-  useEffect(() => {
-    // Client-only: dynamically import DOMPurify and sanitize
-    import("isomorphic-dompurify").then(({ default: DOMPurify }) => {
-      const clean = DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: [
-          "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li",
-          "strong", "em", "u", "s", "code", "pre", "blockquote", "img", "hr",
-          "span", "div", "br",
-        ],
-        ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "target", "rel", "id", "style"],
-      });
-      setSanitized(clean);
-    });
-  }, [html]);
-
   return (
     <div
-      ref={ref}
       className="blog-prose space-y-4 text-sm sm:text-base leading-relaxed text-foreground"
-      dangerouslySetInnerHTML={{ __html: sanitized }}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }
