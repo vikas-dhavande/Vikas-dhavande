@@ -22,7 +22,7 @@ export function IntroHeroSection() {
   const { theme } = useTheme();
 
   const waveColors = {
-    dark: { base: "#09090b", high: "#e11d48" },
+    dark: { base: "#09090b", high: "#ffffffff" },
     cyberpunk: { base: "#0c081f", high: "#00ffcc" },
     light: { base: "#f4f4f5", high: "#2563eb" },
   }[theme] || { base: "#f4f4f5", high: "#2563eb" };

@@ -1,5 +1,5 @@
 import { databases } from "@/lib/appwrite";
-import { BlogPost, BlogFilterOptions } from "@/lib/blog-types";
+import { BlogPost, BlogFilterOptions, BlogReaction, BlogComment } from "@/lib/blog-types";
 import defaultBlogPosts from "@/data/blog-data.json";
 import { Query, ID } from "appwrite";
 
@@ -52,6 +52,7 @@ function normalizePost(doc: Record<string, unknown>): BlogPost {
     publishedAt: getString(doc.publishedAt, getString(doc.$createdAt, new Date().toISOString())),
     readTimeMinutes: Number(doc.readTimeMinutes) || 5,
     featured: Boolean(doc.featured),
+    status: (doc.status as "published" | "draft") || "published",
     coverImage: typeof doc.coverImage === "string" ? doc.coverImage : undefined,
     tags,
     author: {
@@ -196,7 +197,7 @@ export async function createBlogPost(postData: Partial<BlogPost>): Promise<BlogP
       .replace(/(^-|-$)+/g, "") ||
     ID.unique();
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     title: postData.title,
     slug,
     excerpt: postData.excerpt || "",
@@ -205,6 +206,7 @@ export async function createBlogPost(postData: Partial<BlogPost>): Promise<BlogP
     publishedAt: postData.publishedAt || new Date().toISOString(),
     readTimeMinutes: postData.readTimeMinutes || 5,
     featured: Boolean(postData.featured),
+    status: postData.status || "published",
     coverImage: postData.coverImage || "",
     tags: Array.isArray(postData.tags) ? postData.tags : [],
     author: JSON.stringify(postData.author || {
@@ -216,4 +218,171 @@ export async function createBlogPost(postData: Partial<BlogPost>): Promise<BlogP
 
   const doc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), payload);
   return normalizePost(doc);
+}
+
+/**
+ * Updates an existing blog post in Appwrite.
+ */
+export async function updateBlogPost(id: string, postData: Partial<BlogPost>): Promise<BlogPost> {
+  if (!DATABASE_ID || !COLLECTION_ID) {
+    throw new Error("Appwrite Blog Database ID and Collection ID are not configured in environment variables.");
+  }
+
+  const payload: Record<string, unknown> = {};
+  if (postData.title !== undefined) payload.title = postData.title;
+  if (postData.slug !== undefined) payload.slug = postData.slug;
+  if (postData.excerpt !== undefined) payload.excerpt = postData.excerpt;
+  if (postData.content !== undefined) payload.content = postData.content;
+  if (postData.category !== undefined) payload.category = postData.category;
+  if (postData.publishedAt !== undefined) payload.publishedAt = postData.publishedAt;
+  if (postData.readTimeMinutes !== undefined) payload.readTimeMinutes = postData.readTimeMinutes;
+  if (postData.featured !== undefined) payload.featured = Boolean(postData.featured);
+  if (postData.status !== undefined) payload.status = postData.status;
+  if (postData.coverImage !== undefined) payload.coverImage = postData.coverImage;
+  if (postData.tags !== undefined) payload.tags = postData.tags;
+  if (postData.author !== undefined) payload.author = JSON.stringify(postData.author);
+
+  const doc = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, payload);
+  return normalizePost(doc);
+}
+
+/**
+ * Deletes a blog post from Appwrite.
+ */
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  if (!DATABASE_ID || !COLLECTION_ID) {
+    throw new Error("Appwrite Blog Database ID and Collection ID are not configured in environment variables.");
+  }
+  await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Blog Reactions & Comments
+// Resilient storage: Client-side storage with Appwrite ready architecture
+// ─────────────────────────────────────────────────────────────────────────────
+
+const REACTIONS_KEY_PREFIX = "aerosys_blog_reactions_";
+const COMMENTS_KEY_PREFIX = "aerosys_blog_comments_";
+
+export async function getBlogReactions(slug: string, userId?: string): Promise<BlogReaction> {
+  if (typeof window === "undefined") {
+    return { likes: 12, rockets: 5, hearts: 8, ideas: 4, userReactions: [] };
+  }
+
+  try {
+    const raw = localStorage.getItem(`${REACTIONS_KEY_PREFIX}${slug}`);
+    if (raw) {
+      const data = JSON.parse(raw);
+      const userReactions = userId && data.users && data.users[userId] ? data.users[userId] : [];
+      return {
+        likes: data.likes ?? 12,
+        rockets: data.rockets ?? 5,
+        hearts: data.hearts ?? 8,
+        ideas: data.ideas ?? 4,
+        userReactions,
+      };
+    }
+  } catch {
+    // fallback
+  }
+
+  return { likes: 12, rockets: 5, hearts: 8, ideas: 4, userReactions: [] };
+}
+
+export async function toggleBlogReaction(
+  slug: string,
+  reactionType: "like" | "rocket" | "heart" | "idea",
+  userId: string
+): Promise<BlogReaction> {
+  if (typeof window === "undefined") {
+    return { likes: 12, rockets: 5, hearts: 8, ideas: 4, userReactions: [reactionType] };
+  }
+
+  const raw = localStorage.getItem(`${REACTIONS_KEY_PREFIX}${slug}`);
+  const store = raw ? JSON.parse(raw) : { likes: 12, rockets: 5, hearts: 8, ideas: 4, users: {} };
+  if (!store.users) store.users = {};
+  if (!store.users[userId]) store.users[userId] = [];
+
+  const keyMap: Record<string, "likes" | "rockets" | "hearts" | "ideas"> = {
+    like: "likes",
+    rocket: "rockets",
+    heart: "hearts",
+    idea: "ideas",
+  };
+  const countKey = keyMap[reactionType];
+
+  const hasReacted = store.users[userId].includes(reactionType);
+  if (hasReacted) {
+    store.users[userId] = store.users[userId].filter((t: string) => t !== reactionType);
+    store[countKey] = Math.max(0, (store[countKey] || 1) - 1);
+  } else {
+    store.users[userId].push(reactionType);
+    store[countKey] = (store[countKey] || 0) + 1;
+  }
+
+  localStorage.setItem(`${REACTIONS_KEY_PREFIX}${slug}`, JSON.stringify(store));
+
+  return {
+    likes: store.likes,
+    rockets: store.rockets,
+    hearts: store.hearts,
+    ideas: store.ideas,
+    userReactions: store.users[userId],
+  };
+}
+
+export async function getBlogComments(slug: string): Promise<BlogComment[]> {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = localStorage.getItem(`${COMMENTS_KEY_PREFIX}${slug}`);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch {
+    // fallback
+  }
+
+  // Sample initial comment for lively UX
+  const seedComments: BlogComment[] = [
+    {
+      id: "seed-1",
+      postSlug: slug,
+      authorId: "member-sample",
+      authorName: "Sarah Chen",
+      authorAvatar: "/avatar.png",
+      content: "Excellent breakdown of the RTOS scheduling latency requirements! The deterministic timing benchmarks are especially relevant.",
+      createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    },
+  ];
+  return seedComments;
+}
+
+export async function addBlogComment(
+  slug: string,
+  commentData: {
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    content: string;
+  }
+): Promise<BlogComment> {
+  const newComment: BlogComment = {
+    id: ID.unique(),
+    postSlug: slug,
+    authorId: commentData.authorId,
+    authorName: commentData.authorName,
+    authorAvatar: commentData.authorAvatar || "/avatar.png",
+    content: commentData.content.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  if (typeof window !== "undefined") {
+    const existing = await getBlogComments(slug);
+    const updated = [newComment, ...existing];
+    localStorage.setItem(`${COMMENTS_KEY_PREFIX}${slug}`, JSON.stringify(updated));
+  }
+
+  return newComment;
 }
