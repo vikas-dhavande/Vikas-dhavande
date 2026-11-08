@@ -1,2 +1,5 @@
+packages:
+  - .
+
 minimumReleaseAgeExclude:
   - appwrite@29.1.0
