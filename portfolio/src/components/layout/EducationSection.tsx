@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
@@ -17,12 +18,16 @@ const isCurrent = (edu: EducationItem) =>
 // Field label per degree. Text only, with a colored dot as the accent.
 const getFieldInfo = (degree: string, institution: string) => {
   const text = `${degree} ${institution}`.toLowerCase();
+
   if (text.includes("communication"))
     return { label: "Communication engineering", dot: "bg-blue-400" };
+
   if (text.includes("electrical"))
     return { label: "Industrial electrical systems", dot: "bg-amber-400" };
+
   if (text.includes("electronic"))
     return { label: "Electronics engineering", dot: "bg-violet-400" };
+
   return { label: "Engineering foundations", dot: "bg-zinc-400" };
 };
 
@@ -40,8 +45,15 @@ function CurrentTag({ className }: { className?: string }) {
   );
 }
 
-function FieldLabel({ degree, institution }: { degree: string; institution: string }) {
+function FieldLabel({
+  degree,
+  institution,
+}: {
+  degree: string;
+  institution: string;
+}) {
   const field = getFieldInfo(degree, institution);
+
   return (
     <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
       <span className={cn("h-1.5 w-1.5 rounded-full", field.dot)} />
@@ -50,58 +62,83 @@ function FieldLabel({ degree, institution }: { degree: string; institution: stri
   );
 }
 
-// ─── Education in numbers ─────────────────────────────────────────────────
+// ─── Education duration calculation ───────────────────────────────────────
 
-const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-
-// Turns "2015 - 2019" or "Aug 2019 – Present" into [startMonth, endMonth] (absolute month index)
-function parsePeriod(period: string): [number, number] | null {
-  const parts = period.split(/\s*(?:-|–|—|\bto\b)\s*/i).filter(Boolean);
-  if (!parts.length) return null;
-
-  const toIndex = (part: string, isEnd: boolean): number | null => {
-    const lower = part.toLowerCase();
-    if (/present|current|now|ongoing/.test(lower)) {
-      const now = new Date();
-      return now.getFullYear() * 12 + now.getMonth();
-    }
-    const year = lower.match(/(?:19|20)\d{2}/);
-    if (!year) return null;
-    const m = MONTHS.findIndex((name) => lower.includes(name));
-    return Number(year[0]) * 12 + (m >= 0 ? m : isEnd ? 11 : 0);
-  };
-
-  const start = toIndex(parts[0], false);
-  const end = parts.length > 1 ? toIndex(parts[parts.length - 1], true) : start;
-  if (start === null || end === null) return null;
-  return end >= start ? [start, end] : [end, start];
+interface ProgramDuration {
+  completed: number;
+  ongoing: number;
 }
 
-// Total months studied, merging overlaps so parallel programs are not double counted
-function totalMonths(education: EducationItem[]): number {
-  const ranges = education
-    .map((e) => parsePeriod(e.period))
-    .filter((r): r is [number, number] => r !== null)
-    .sort((a, b) => a[0] - b[0]);
+function getProgramDuration(edu: EducationItem): ProgramDuration {
+  const degree = edu.degree.toLowerCase();
+  const institution = edu.institution.toLowerCase();
+  const text = `${degree} ${institution}`
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 
-  let total = 0;
-  let curStart = -1;
-  let curEnd = -1;
-  for (const [start, end] of ranges) {
-    if (curStart === -1) {
-      curStart = start;
-      curEnd = end;
-    } else if (start <= curEnd + 1) {
-      curEnd = Math.max(curEnd, end);
-    } else {
-      total += curEnd - curStart + 1;
-      curStart = start;
-      curEnd = end;
-    }
+  // B.Tech: 1.5 years completed, 1.5 years ongoing
+  if (
+    text.includes("bachelor of technology") ||
+    /\bb tech\b/.test(text) ||
+    /\bbtech\b/.test(text)
+  ) {
+    return {
+      completed: 1.5,
+      ongoing: 1.5,
+    };
   }
-  if (curStart !== -1) total += curEnd - curStart + 1;
-  return total;
+
+  // Diploma: 3 years completed
+  if (text.includes("diploma")) {
+    return {
+      completed: 3,
+      ongoing: 0,
+    };
+  }
+
+  // ITI: 2 years completed
+  if (
+    text.includes("industrial training institute") ||
+    /\biti\b/.test(text) ||
+    (text.includes("electrician") && !text.includes("diploma"))
+  ) {
+    return {
+      completed: 2,
+      ongoing: 0,
+    };
+  }
+
+  return {
+    completed: 0,
+    ongoing: 0,
+  };
 }
+
+function getEducationStats(education: EducationItem[]) {
+  const completedYears = education.reduce(
+    (total, edu) => total + getProgramDuration(edu).completed,
+    0
+  );
+
+  const institutions = new Set(
+    education.map((edu) => edu.institution.trim().toLowerCase())
+  );
+
+  const locations = new Set(
+    education
+      .map((edu) => edu.location?.trim().toLowerCase())
+      .filter((location): location is string => Boolean(location))
+  );
+
+  return {
+    completedYears,
+    institutions: institutions.size,
+    qualifications: education.length,
+    locations: locations.size,
+  };
+}
+
+// ─── Animated statistics ───────────────────────────────────────────────────
 
 function useCountUp(target: number, decimals: number, duration = 1100) {
   const [value, setValue] = useState(0);
@@ -111,15 +148,21 @@ function useCountUp(target: number, decimals: number, duration = 1100) {
       setValue(target);
       return;
     }
+
     let frame = 0;
     const startTime = performance.now();
+
     const tick = (now: number) => {
       const t = Math.min((now - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
+
       setValue(target * eased);
+
       if (t < 1) frame = requestAnimationFrame(tick);
     };
+
     frame = requestAnimationFrame(tick);
+
     return () => cancelAnimationFrame(frame);
   }, [target, duration]);
 
@@ -138,33 +181,28 @@ function Stat({
   label: string;
 }) {
   const shown = useCountUp(value, decimals);
+
   return (
     <div className="flex min-w-0 flex-col sm:px-4 sm:first:pl-0 sm:last:pr-0">
       <span className="text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
         {shown}
         {suffix && <span className="text-primary">{suffix}</span>}
       </span>
-      <span className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">{label}</span>
+
+      <span className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">
+        {label}
+      </span>
     </div>
   );
 }
 
+// ─── Education statistics ──────────────────────────────────────────────────
+
 function EducationStats({ education }: { education: EducationItem[] }) {
-  const stats = useMemo(() => {
-    const months = totalMonths(education);
-    const institutions = new Set(education.map((e) => e.institution.trim().toLowerCase()));
-    const locations = new Set(
-      education
-        .map((e) => e.location?.trim().toLowerCase())
-        .filter((l): l is string => Boolean(l))
-    );
-    return {
-      years: Math.round((months / 12) * 10) / 10,
-      institutions: institutions.size,
-      qualifications: education.length,
-      locations: locations.size,
-    };
-  }, [education]);
+  const stats = useMemo(
+    () => getEducationStats(education),
+    [education]
+  );
 
   return (
     <div
@@ -172,10 +210,22 @@ function EducationStats({ education }: { education: EducationItem[] }) {
       aria-label="Education in numbers"
       className="grid grid-flow-col auto-cols-fr gap-2 sm:flex sm:gap-0 sm:divide-x sm:divide-border"
     >
-      {stats.years > 0 && <Stat value={stats.years} decimals={1} suffix="+" label="Years of study" />}
+      {stats.completedYears > 0 && (
+        <Stat
+          value={stats.completedYears}
+          decimals={1}
+          suffix="+"
+          label="Years completed"
+        />
+      )}
+
       <Stat value={stats.qualifications} label="Qualifications" />
+
       <Stat value={stats.institutions} label="Institutions" />
-      {stats.locations > 0 && <Stat value={stats.locations} label="Locations" />}
+
+      {stats.locations > 0 && (
+        <Stat value={stats.locations} label="Locations" />
+      )}
     </div>
   );
 }
@@ -190,52 +240,70 @@ function EducationStats({ education }: { education: EducationItem[] }) {
  * A fixed/sticky site navbar is detected automatically so the header sits below it.
  * To set it by hand, pass stickyTop (e.g. stickyTop={64}).
  */
-export function EducationSection({ education, stickyTop }: EducationSectionProps) {
+export function EducationSection({
+  education,
+  stickyTop,
+}: EducationSectionProps) {
   const safeEducation = useMemo(() => education || [], [education]);
   const count = safeEducation.length;
 
   const [active, setActive] = useState(0);
+
   const entryRefs = useRef<(HTMLElement | null)[]>([]);
   const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const navRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+
   const [headerH, setHeaderH] = useState(0);
   const [navOffset, setNavOffset] = useState(0);
 
   // Find a fixed/sticky site navbar at the top so our sticky header sits BELOW it
   useEffect(() => {
     if (stickyTop !== undefined) return;
+
     let frame = 0;
 
     const detect = () => {
       frame = 0;
       let offset = 0;
+
       document
         .querySelectorAll<HTMLElement>("header, nav, [role='banner']")
         .forEach((el) => {
           if (sectionRef.current?.contains(el)) return;
+
           const position = getComputedStyle(el).position;
+
           if (position !== "fixed" && position !== "sticky") return;
+
           const r = el.getBoundingClientRect();
+
           if (r.width < window.innerWidth * 0.5 || r.height <= 0) return;
           if (r.top > 8 || r.bottom <= 0) return;
+
           offset = Math.max(offset, Math.round(r.bottom));
         });
+
       setNavOffset(offset);
     };
+
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(detect);
     };
 
     detect();
+
     const late = window.setTimeout(detect, 600);
+
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule, { passive: true });
+
     return () => {
       window.clearTimeout(late);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule);
+
       if (frame) cancelAnimationFrame(frame);
     };
   }, [stickyTop]);
@@ -243,9 +311,12 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
   // Dev-only: a parent with overflow set silently breaks position: sticky
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
+
     let node = sectionRef.current?.parentElement;
+
     while (node && node !== document.documentElement) {
       const cs = getComputedStyle(node);
+
       if (/(auto|hidden|scroll|clip)/.test(`${cs.overflowX} ${cs.overflowY}`)) {
         console.warn(
           "[EducationSection] A parent element has overflow set, so the sticky header cannot stick. Remove overflow from:",
@@ -253,49 +324,71 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
         );
         break;
       }
+
       node = node.parentElement;
     }
   }, []);
 
   useEffect(() => {
     const el = headerRef.current;
+
     if (!el) return;
+
     const measure = () => setHeaderH(el.offsetHeight);
+
     measure();
+
     const ro = new ResizeObserver(measure);
     ro.observe(el);
+
     return () => ro.disconnect();
   }, [count]);
 
   // Scroll position -> active entry
   useEffect(() => {
     if (!count) return;
+
     let frame = 0;
 
     const update = () => {
       frame = 0;
+
       const line = window.innerHeight * 0.4;
       let current = 0;
+
       for (let i = 0; i < count; i++) {
         const el = entryRefs.current[i];
-        if (el && el.getBoundingClientRect().top <= line) current = i;
+
+        if (el && el.getBoundingClientRect().top <= line) {
+          current = i;
+        }
       }
+
       const last = entryRefs.current[count - 1];
-      if (last && last.getBoundingClientRect().bottom <= window.innerHeight + 2) {
+
+      if (
+        last &&
+        last.getBoundingClientRect().bottom <= window.innerHeight + 2
+      ) {
         current = count - 1;
       }
+
       setActive(current);
     };
+
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
 
     update();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+
       if (frame) cancelAnimationFrame(frame);
     };
   }, [count]);
@@ -303,7 +396,10 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
   if (!count) return null;
 
   const goTo = (index: number) => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
     entryRefs.current[index]?.scrollIntoView({
       behavior: reduce ? "auto" : "smooth",
       block: "start",
@@ -337,6 +433,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-5xl 2xl:text-6xl">
             Education
           </h2>
+
           <EducationStats education={safeEducation} />
         </div>
       </div>
@@ -363,13 +460,16 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                   <p className="text-xs text-muted-foreground">
                     {safeEducation[active]?.period}
                   </p>
+
                   <p className="text-sm font-semibold leading-snug text-foreground">
                     {safeEducation[active]?.institution}
                   </p>
                 </div>
+
                 <span className="text-xs tabular-nums text-muted-foreground">
                   {active + 1}/{count}
                 </span>
+
                 <button
                   type="button"
                   aria-label="Previous institution"
@@ -379,6 +479,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
+
                 <button
                   type="button"
                   aria-label="Next institution"
@@ -389,6 +490,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
+
               <div className="mt-1 flex gap-1">
                 {safeEducation.map((edu, index) => (
                   <button
@@ -417,6 +519,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
             >
               {safeEducation.map((edu, index) => {
                 const isActive = index === active;
+
                 return (
                   <button
                     key={edu.id}
@@ -437,6 +540,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                     <span className="block truncate text-xs text-muted-foreground">
                       {edu.period}
                     </span>
+
                     <span
                       className={cn(
                         "mt-0.5 block truncate text-base font-semibold tracking-tight transition-colors",
@@ -447,6 +551,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                     >
                       {edu.institution}
                     </span>
+
                     <span
                       className={cn(
                         "block truncate text-sm",
@@ -459,6 +564,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                 );
               })}
             </nav>
+
             <p className="mt-4 hidden text-xs text-muted-foreground lg:block">
               {active + 1} of {count}. Scroll to move through qualifications.
             </p>
@@ -480,11 +586,19 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                 )}
               >
                 <header className="flex flex-col gap-2.5">
-                  <FieldLabel degree={edu.degree} institution={edu.institution} />
+                  <FieldLabel
+                    degree={edu.degree}
+                    institution={edu.institution}
+                  />
+
                   <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
                     {edu.institution}
                   </h3>
-                  <p className="text-base font-medium text-primary sm:text-lg">{edu.degree}</p>
+
+                  <p className="text-base font-medium text-primary sm:text-lg">
+                    {edu.degree}
+                  </p>
+
                   <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span>{edu.period}</span>
                     {edu.location && <span>{edu.location}</span>}
@@ -497,6 +611,7 @@ export function EducationSection({ education, stickyTop }: EducationSectionProps
                     <h4 className="text-sm font-semibold text-foreground">
                       Focus and coursework
                     </h4>
+
                     <p className="max-w-prose text-sm text-foreground/85 leading-relaxed sm:text-base">
                       {edu.details}
                     </p>
