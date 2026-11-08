@@ -30,12 +30,25 @@ const istFormatter = new Intl.DateTimeFormat("en-GB", {
   hour12: false,
 });
 
-// Live IST clock. Starts empty and fills in after mount to avoid hydration mismatch.
+const istDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  weekday: "short",
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+// Live IST clock + date. Starts empty and fills in after mount to avoid hydration mismatch.
 function ISTClock() {
   const [time, setTime] = useState("");
+  const [date, setDate] = useState("");
 
   useEffect(() => {
-    const tick = () => setTime(istFormatter.format(new Date()));
+    const tick = () => {
+      const now = new Date();
+      setTime(istFormatter.format(now));
+      setDate(istDateFormatter.format(now));
+    };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -44,7 +57,7 @@ function ISTClock() {
   return (
     <p
       className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em]"
-      aria-label="Current time in India Standard Time"
+      aria-label="Current date and time in India Standard Time"
     >
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-60" />
@@ -52,6 +65,8 @@ function ISTClock() {
       </span>
       <span className="tabular-nums">{time || "--:--:--"}</span>
       <span className="opacity-60">IST</span>
+      <span className="opacity-60" aria-hidden="true">·</span>
+      <span className="tabular-nums">{date || "--- -- --- ----"}</span>
     </p>
   );
 }
@@ -95,7 +110,7 @@ export function IntroHeroSection() {
         </span>
       </h1>
 
-      {/* 3. Top bar: IST clock */}
+      {/* 3. Top bar: IST clock + date */}
       <header className="absolute inset-x-0 top-0 z-[5] flex items-center justify-between px-6 py-6 text-foreground md:px-8">
         <ISTClock />
       </header>
