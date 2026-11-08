@@ -1,5 +1,9 @@
 packages:
   - .
 
+allowBuilds:
+  esbuild: false
+  workerd: false
+
 minimumReleaseAgeExclude:
   - appwrite@29.1.0
