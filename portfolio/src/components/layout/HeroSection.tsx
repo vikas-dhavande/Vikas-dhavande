@@ -13,15 +13,50 @@ const getPlaylistId = (url: string) =>
 
 const playlistId = getPlaylistId(PLAYLIST_URL);
 
+/* Minimal typings for the YouTube IFrame API */
+interface YTPlayer {
+  mute(): void;
+  unMute(): void;
+  setVolume(volume: number): void;
+  playVideo(): void;
+  pauseVideo(): void;
+  nextVideo(): void;
+  playVideoAt(index: number): void;
+  setLoop(loop: boolean): void;
+  setShuffle(shuffle: boolean): void;
+  unloadModule(module: string): void;
+  destroy(): void;
+}
+
+interface YTPlayerEvent {
+  target: YTPlayer;
+  data: number;
+}
+
+interface YTPlayerOptions {
+  width?: string | number;
+  height?: string | number;
+  playerVars?: Record<string, string | number>;
+  events?: {
+    onReady?: (e: YTPlayerEvent) => void;
+    onStateChange?: (e: YTPlayerEvent) => void;
+    onError?: (e: YTPlayerEvent) => void;
+  };
+}
+
+interface YTNamespace {
+  Player: new (element: HTMLElement, options: YTPlayerOptions) => YTPlayer;
+}
+
 declare global {
   interface Window {
-    YT?: any;
+    YT?: YTNamespace;
     onYouTubeIframeAPIReady?: () => void;
   }
 }
 
 export function HeroSection() {
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -30,15 +65,15 @@ export function HeroSection() {
   useEffect(() => {
     let destroyed = false;
 
-    const hideCaptions = (player: any) => {
+    const hideCaptions = (player: YTPlayer) => {
       try {
         player.unloadModule("captions"); // desktop
-        player.unloadModule("cc");       // some mobile players
+        player.unloadModule("cc"); // some mobile players
       } catch { }
     };
 
     const createPlayer = () => {
-      if (destroyed || !containerRef.current) return;
+      if (destroyed || !containerRef.current || !window.YT) return;
 
       playerRef.current = new window.YT.Player(containerRef.current, {
         width: "100%",
@@ -54,12 +89,12 @@ export function HeroSection() {
           playsinline: 1,
           disablekb: 1,
           fs: 0,
-          iv_load_policy: 3,   // no annotations
-          cc_load_policy: 0,   // no captions by default
+          iv_load_policy: 3,
+          cc_load_policy: 0,
           origin: window.location.origin,
         },
         events: {
-          onReady: (e: any) => {
+          onReady: (e) => {
             const player = e.target;
             player.mute();
             hideCaptions(player);
@@ -67,9 +102,9 @@ export function HeroSection() {
             player.setShuffle(true);
             player.playVideoAt(0);
           },
-          onStateChange: (e: any) => {
+          onStateChange: (e) => {
             if (e.data === 1) {
-              hideCaptions(e.target); // captions can reload on each new video
+              hideCaptions(e.target);
               setIsPlaying(true);
               setReady(true);
             }
@@ -77,7 +112,7 @@ export function HeroSection() {
           },
           onError: () => {
             setReady(false);
-            playerRef.current?.nextVideo(); // skip unavailable video
+            playerRef.current?.nextVideo();
           },
         },
       });
@@ -101,7 +136,7 @@ export function HeroSection() {
 
     return () => {
       destroyed = true;
-      playerRef.current?.destroy?.();
+      playerRef.current?.destroy();
       playerRef.current = null;
     };
   }, []);
