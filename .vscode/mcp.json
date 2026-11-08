@@ -7,6 +7,10 @@
     "cm-market": {
       "type": "http",
       "url": "https://mcp.nseindia.in/cmmkt/mcp"
+    },
+    "alphavantage": {
+      "type": "streamable-http",
+      "url": "https://mcp.alphavantage.co/mcp?apikey=${env:ALPHAVANTAGE_API_KEY}"
     }
   }
 }

@@ -1,602 +1,574 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import {
-  ArrowUpRight,
-  Briefcase,
-  Calendar,
-  MapPin,
-  ChevronRight,
-  ChevronLeft,
-  Building2,
-  Layers,
-  ShieldCheck,
-  Cpu,
-  Gauge,
-  Workflow,
-  Factory,
-} from "lucide-react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { ExperienceItem } from "@/lib/portfolio-types";
-import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { cn } from "@/lib/utils";
 
 interface ExperienceSectionProps {
   experiences: ExperienceItem[];
+  /** Height of your fixed navbar in px (or any CSS length). Auto-detected when omitted. */
+  stickyTop?: number | string;
 }
 
-export function ExperienceSection({ experiences }: ExperienceSectionProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<"spotlight" | "list">("spotlight");
+const isCurrent = (exp: ExperienceItem) =>
+  Boolean(exp.isCurrent) || exp.period.toLowerCase().includes("present");
 
-  const safeExperiences = useMemo(() => experiences || [], [experiences]);
-  const activeExp = safeExperiences[selectedIndex] || safeExperiences[0];
+// Domain label per company/role. Text only, with a colored dot as the accent.
+const getDomainInfo = (company: string, role: string) => {
+  const text = `${company} ${role}`.toLowerCase();
+  if (text.includes("foxconn"))
+    return { label: "Aerospace and national defense avionics", dot: "bg-rose-400" };
+  if (text.includes("iisc") || text.includes("science"))
+    return { label: "Scientific aerospace R&D", dot: "bg-amber-400" };
+  if (text.includes("bosch") && text.includes("lead"))
+    return { label: "Automotive ECUs and high-voltage power systems", dot: "bg-blue-400" };
+  if (text.includes("bosch"))
+    return { label: "NPI engineering change and industrial SAP trials", dot: "bg-violet-400" };
+  if (text.includes("wistron"))
+    return { label: "High-speed SMT and main logic board manufacturing", dot: "bg-emerald-400" };
+  return { label: "Electronic systems and product engineering", dot: "bg-zinc-400" };
+};
 
-  const handlePrev = () => {
-    setSelectedIndex((prev) =>
-      prev === 0 ? safeExperiences.length - 1 : prev - 1
-    );
+function CurrentTag({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400",
+        className
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      Currently working here
+    </span>
+  );
+}
+
+function DomainLabel({ company, role }: { company: string; role: string }) {
+  const domain = getDomainInfo(company, role);
+  return (
+    <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <span className={cn("h-1.5 w-1.5 rounded-full", domain.dot)} />
+      {domain.label}
+    </span>
+  );
+}
+
+function Highlights({ items }: { items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <ul className="space-y-2.5">
+      {items.map((highlight, idx) => (
+        <li
+          key={idx}
+          className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed"
+        >
+          <span className="mt-2 h-px w-3 bg-primary shrink-0" />
+          <span>{highlight}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Technologies({ items }: { items: string[] }) {
+  return (
+    <p className="text-sm text-muted-foreground leading-relaxed">
+      {items.join(", ")}
+    </p>
+  );
+}
+
+// ─── Experience in numbers ────────────────────────────────────────────────
+
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+// Turns "Jan 2020 - Present" or "2019 – 2021" into [startMonth, endMonth] (absolute month index)
+function parsePeriod(period: string): [number, number] | null {
+  const parts = period.split(/\s*(?:-|–|—|\bto\b)\s*/i).filter(Boolean);
+  if (!parts.length) return null;
+
+  const toIndex = (part: string, isEnd: boolean): number | null => {
+    const lower = part.toLowerCase();
+    if (/present|current|now|ongoing/.test(lower)) {
+      const now = new Date();
+      return now.getFullYear() * 12 + now.getMonth();
+    }
+    const year = lower.match(/(?:19|20)\d{2}/);
+    if (!year) return null;
+    const m = MONTHS.findIndex((name) => lower.includes(name));
+    return Number(year[0]) * 12 + (m >= 0 ? m : isEnd ? 11 : 0);
   };
 
-  const handleNext = () => {
-    setSelectedIndex((prev) =>
-      prev === safeExperiences.length - 1 ? 0 : prev + 1
-    );
-  };
+  const start = toIndex(parts[0], false);
+  const end = parts.length > 1 ? toIndex(parts[parts.length - 1], true) : start;
+  if (start === null || end === null) return null;
+  return end >= start ? [start, end] : [end, start];
+}
 
-  // Helper to assign specialized engineering domain tags & icons based on role/company
-  const getDomainInfo = (company: string, role: string) => {
-    const text = `${company} ${role}`.toLowerCase();
-    if (text.includes("foxconn")) {
-      return {
-        label: "Aerospace & National Defense Avionics",
-        icon: <ShieldCheck className="h-3.5 w-3.5 text-[#E11D48]" />,
-        badgeClass: "border-[#E11D48]/40 bg-[#E11D48]/10 text-[#FB7185]",
-      };
-    }
-    if (text.includes("iisc") || text.includes("science")) {
-      return {
-        label: "Premier Scientific Aerospace R&D",
-        icon: <Cpu className="h-3.5 w-3.5 text-amber-400" />,
-        badgeClass: "border-amber-500/40 bg-amber-500/10 text-amber-300",
-      };
-    }
-    if (text.includes("bosch") && text.includes("lead")) {
-      return {
-        label: "Automotive ECUs & High-Voltage Power Systems",
-        icon: <Gauge className="h-3.5 w-3.5 text-blue-400" />,
-        badgeClass: "border-blue-500/40 bg-blue-500/10 text-blue-300",
-      };
-    }
-    if (text.includes("bosch")) {
-      return {
-        label: "NPI Engineering Change & Industrial SAP Trials",
-        icon: <Workflow className="h-3.5 w-3.5 text-violet-400" />,
-        badgeClass: "border-violet-500/40 bg-violet-500/10 text-violet-300",
-      };
-    }
-    if (text.includes("wistron")) {
-      return {
-        label: "High-Speed SMT & Main Logic Board Manufacturing",
-        icon: <Factory className="h-3.5 w-3.5 text-emerald-400" />,
-        badgeClass: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
-      };
-    }
-    return {
-      label: "Electronic Systems & Product Engineering",
-      icon: <Briefcase className="h-3.5 w-3.5 text-zinc-400" />,
-      badgeClass: "border-zinc-700 bg-zinc-800 text-zinc-300",
-    };
-  };
+// Total months worked, merging overlaps so parallel roles are not double counted
+function totalMonths(experiences: ExperienceItem[]): number {
+  const ranges = experiences
+    .map((e) => parsePeriod(e.period))
+    .filter((r): r is [number, number] => r !== null)
+    .sort((a, b) => a[0] - b[0]);
 
-  if (!safeExperiences.length) {
-    return null;
+  let total = 0;
+  let curStart = -1;
+  let curEnd = -1;
+  for (const [start, end] of ranges) {
+    if (curStart === -1) {
+      curStart = start;
+      curEnd = end;
+    } else if (start <= curEnd + 1) {
+      curEnd = Math.max(curEnd, end);
+    } else {
+      total += curEnd - curStart + 1;
+      curStart = start;
+      curEnd = end;
+    }
   }
+  if (curStart !== -1) total += curEnd - curStart + 1;
+  return total;
+}
 
-  const activeDomain = activeExp
-    ? getDomainInfo(activeExp.company, activeExp.role)
-    : null;
+function useCountUp(target: number, decimals: number, duration = 1100) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return;
+    }
+    let frame = 0;
+    const startTime = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(target * eased);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+
+  return value.toFixed(decimals);
+}
+
+function Stat({
+  value,
+  decimals = 0,
+  suffix,
+  label,
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  label: string;
+}) {
+  const shown = useCountUp(value, decimals);
+  return (
+    <div className="flex min-w-0 flex-col sm:px-4 sm:first:pl-0 sm:last:pr-0">
+      <span className="text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
+        {shown}
+        {suffix && <span className="text-primary">{suffix}</span>}
+      </span>
+      <span className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">{label}</span>
+    </div>
+  );
+}
+
+function ExperienceStats({ experiences }: { experiences: ExperienceItem[] }) {
+  const stats = useMemo(() => {
+    const months = totalMonths(experiences);
+    const companies = new Set(experiences.map((e) => e.company.trim().toLowerCase()));
+    const tech = new Set(
+      experiences.flatMap((e) => e.technologies || []).map((t) => t.trim().toLowerCase())
+    );
+    const deliverables = experiences.reduce((n, e) => n + (e.highlights?.length || 0), 0);
+    return {
+      years: Math.round((months / 12) * 10) / 10,
+      companies: companies.size,
+      roles: experiences.length,
+      tech: tech.size,
+      deliverables,
+    };
+  }, [experiences]);
+
+  return (
+    <div
+      role="group"
+      aria-label="Experience in numbers"
+      className="grid grid-flow-col auto-cols-fr gap-2 sm:flex sm:gap-0 sm:divide-x sm:divide-border"
+    >
+      {stats.years > 0 && <Stat value={stats.years} decimals={1} suffix="+" label="Years" />}
+      <Stat value={stats.companies} label="Companies" />
+      <Stat value={stats.roles} label="Roles" />
+      <Stat value={stats.tech} label="Technologies" />
+      {stats.deliverables > 0 && <Stat value={stats.deliverables} label="Deliverables" />}
+    </div>
+  );
+}
+
+/**
+ * Scroll-spy layout (no scroll-jacking):
+ *  - The page scrolls normally. Every company is a full entry in one long column.
+ *  - The company list stays in view (side rail on desktop, swipe strip on phones)
+ *    and highlights whichever company you are reading, scrolling down OR up.
+ *  - Tapping a company scrolls to it.
+ *
+ * A fixed/sticky site navbar is detected automatically so the header sits below it.
+ * To set it by hand, pass stickyTop (e.g. stickyTop={64}).
+ */
+export function ExperienceSection({ experiences, stickyTop }: ExperienceSectionProps) {
+  const safeExperiences = useMemo(() => experiences || [], [experiences]);
+  const count = safeExperiences.length;
+
+  const [active, setActive] = useState(0);
+  const entryRefs = useRef<(HTMLElement | null)[]>([]);
+  const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const navRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [headerH, setHeaderH] = useState(0);
+  const [navOffset, setNavOffset] = useState(0);
+
+  // Find a fixed/sticky site navbar at the top so our sticky header sits BELOW it
+  useEffect(() => {
+    if (stickyTop !== undefined) return;
+    let frame = 0;
+
+    const detect = () => {
+      frame = 0;
+      let offset = 0;
+      document
+        .querySelectorAll<HTMLElement>("header, nav, [role='banner']")
+        .forEach((el) => {
+          if (sectionRef.current?.contains(el)) return;
+          const position = getComputedStyle(el).position;
+          if (position !== "fixed" && position !== "sticky") return;
+          const r = el.getBoundingClientRect();
+          if (r.width < window.innerWidth * 0.5 || r.height <= 0) return;
+          if (r.top > 8 || r.bottom <= 0) return;
+          offset = Math.max(offset, Math.round(r.bottom));
+        });
+      setNavOffset(offset);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(detect);
+    };
+
+    detect();
+    const late = window.setTimeout(detect, 600);
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      window.clearTimeout(late);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [stickyTop]);
+
+  // Dev-only: a parent with overflow set silently breaks position: sticky
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    let node = sectionRef.current?.parentElement;
+    while (node && node !== document.documentElement) {
+      const cs = getComputedStyle(node);
+      if (/(auto|hidden|scroll|clip)/.test(`${cs.overflowX} ${cs.overflowY}`)) {
+        console.warn(
+          "[ExperienceSection] A parent element has overflow set, so the sticky header cannot stick. Remove overflow from:",
+          node
+        );
+        break;
+      }
+      node = node.parentElement;
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const measure = () => setHeaderH(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [count]);
+
+  // Scroll position -> active company
+  useEffect(() => {
+    if (!count) return;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.4;
+      let current = 0;
+      for (let i = 0; i < count; i++) {
+        const el = entryRefs.current[i];
+        if (el && el.getBoundingClientRect().top <= line) current = i;
+      }
+      const last = entryRefs.current[count - 1];
+      if (last && last.getBoundingClientRect().bottom <= window.innerHeight + 2) {
+        current = count - 1;
+      }
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [count]);
+
+  // Phones: keep the active chip centred in the swipe strip
+  useEffect(() => {
+    const nav = navRef.current;
+    const chip = chipRefs.current[active];
+    if (!nav || !chip || nav.scrollWidth <= nav.clientWidth) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nav.scrollTo({
+      left: chip.offsetLeft - (nav.clientWidth - chip.clientWidth) / 2,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [active]);
+
+  if (!count) return null;
+
+  const goTo = (index: number) => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    entryRefs.current[index]?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
+  };
 
   return (
     <section
       id="experience"
-      aria-label="Work Experience and Career History"
-      className="relative min-h-screen w-full flex flex-col justify-center py-10 sm:py-14 lg:py-16 border-t border-border bg-background/80 overflow-hidden selection:bg-primary/30 transition-colors duration-300"
+      ref={sectionRef}
+      aria-label="Work experience and career history"
+      style={
+        {
+          "--exp-sticky-top":
+            stickyTop !== undefined
+              ? typeof stickyTop === "number"
+                ? `${stickyTop}px`
+                : stickyTop
+              : `${navOffset}px`,
+          "--exp-header-h": `${headerH}px`,
+        } as React.CSSProperties
+      }
+      className="relative w-full border-t border-border bg-background/80 pb-10 sm:pb-14 lg:pb-16 selection:bg-primary/30"
     >
-      {/* Ambient background accents for depth */}
+      {/* Title and numbers stay on top until the end of this section */}
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 right-1/4 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-[140px]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-40 left-1/4 h-[28rem] w-[28rem] rounded-full bg-blue-500/10 blur-[150px]"
-      />
-
-      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col justify-center flex-1">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 lg:mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3.5 py-1 text-xs text-muted-foreground mb-3 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span>Career Track</span>
-              <span className="text-muted-foreground/60">•</span>
-              <span className="text-muted-foreground font-mono text-[11px]">
-                {safeExperiences.length} Milestones
-              </span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              <span>Experience</span>
-            </h2>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <p className="max-w-md text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Engineering roles, architectural leadership, and scalable avionics systems built across aerospace, defense, and automotive industry leaders.
-            </p>
-
-            {/* View Mode Switcher */}
-            <div className="inline-flex items-center self-start sm:self-auto rounded-full border border-border bg-card/60 p-1 backdrop-blur-md">
-              <button
-                type="button"
-                onClick={() => setViewMode("spotlight")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 cursor-pointer",
-                  viewMode === "spotlight"
-                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                title="Interactive Spotlight View"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Spotlight</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 cursor-pointer",
-                  viewMode === "list"
-                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                title="All Companies Stream View"
-              >
-                <Building2 className="h-3.5 w-3.5" />
-                <span>All Companies</span>
-              </button>
-            </div>
-          </div>
+        ref={headerRef}
+        className="sticky top-[var(--exp-sticky-top,0px)] z-30 border-b border-border bg-background/95 backdrop-blur"
+      >
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 sm:py-4 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8 lg:py-5 2xl:max-w-[96rem]">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-5xl 2xl:text-6xl">
+            Experience
+          </h2>
+          <ExperienceStats experiences={safeExperiences} />
         </div>
+      </div>
 
-        {/* ─── VIEW 1: SPOTLIGHT FULL-SCREEN DUAL PANE ──────────────────────── */}
-        {viewMode === "spotlight" && activeExp && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-            {/* Left Column: "Icons Side" / Company Rail */}
-            <div className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-3">
-              <div className="flex items-center justify-between pb-2 border-b border-border">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                  Companies Worked &amp; Working
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-8 2xl:max-w-[96rem]">
+        <p className="mb-6 max-w-xl text-sm text-muted-foreground leading-relaxed sm:mb-8">
+          Engineering roles and avionics systems built across aerospace,
+          defense, and automotive industries.
+        </p>
+
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-12 lg:gap-12">
+          {/* Company list: sticky strip on phones, sticky side rail on desktop */}
+          <aside
+            className={cn(
+              "sticky z-20 top-[calc(var(--exp-sticky-top,0px)+var(--exp-header-h,0px))]",
+              "-mx-4 border-b border-border bg-background/90 px-4 backdrop-blur sm:-mx-6 sm:px-6",
+              "lg:top-[calc(var(--exp-sticky-top,0px)+var(--exp-header-h,0px)+1.5rem)] lg:col-span-4 lg:mx-0 lg:self-start lg:border-b-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none"
+            )}
+          >
+            {/* Phone: one clear "you are here" bar, no scrollbar, no cut-off names */}
+            <div className="py-2.5 lg:hidden">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground">
+                    {safeExperiences[active]?.period}
+                  </p>
+                  <p className="text-sm font-semibold leading-snug text-foreground">
+                    {safeExperiences[active]?.company}
+                  </p>
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {active + 1}/{count}
                 </span>
-                <span className="text-[11px] font-mono text-muted-foreground">
-                  Select to inspect
-                </span>
+                <button
+                  type="button"
+                  aria-label="Previous company"
+                  disabled={active === 0}
+                  onClick={() => goTo(active - 1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-opacity disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next company"
+                  disabled={active === count - 1}
+                  onClick={() => goTo(active + 1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-opacity disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
-
-              <div className="flex flex-col gap-2 sm:gap-2.5 overflow-y-auto max-h-[580px] pr-1 scrollbar-thin">
-                {safeExperiences.map((exp, index) => {
-                  const isSelected = index === selectedIndex;
-                  const isCurrentlyWorking =
-                    exp.isCurrent ||
-                    exp.period.toLowerCase().includes("present");
-
-                  return (
-                    <button
-                      key={exp.id}
-                      type="button"
-                      onClick={() => setSelectedIndex(index)}
+              <div className="mt-1 flex gap-1">
+                {safeExperiences.map((exp, index) => (
+                  <button
+                    key={exp.id}
+                    type="button"
+                    aria-label={`Go to ${exp.company}`}
+                    aria-current={index === active ? "true" : undefined}
+                    onClick={() => goTo(index)}
+                    className="group flex-1 py-2"
+                  >
+                    <span
                       className={cn(
-                        "group relative w-full text-left rounded-2xl border p-3.5 sm:p-4 transition-all duration-200 cursor-pointer",
-                        "hover:bg-muted/40",
-                        isSelected
-                          ? "border-primary/50 bg-card shadow-lg ring-1 ring-primary/20"
-                          : "border-border bg-card/60 hover:border-border/80"
+                        "block h-1 rounded-full transition-colors",
+                        index === active ? "bg-primary" : "bg-border"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <nav
+              ref={navRef}
+              aria-label="Companies"
+              className="relative hidden lg:flex lg:max-h-[calc(100svh-var(--exp-sticky-top,0px)-var(--exp-header-h,0px)-7rem)] lg:flex-col lg:overflow-y-auto"
+            >
+              {safeExperiences.map((exp, index) => {
+                const isActive = index === active;
+                return (
+                  <button
+                    key={exp.id}
+                    ref={(el) => {
+                      chipRefs.current[index] = el;
+                    }}
+                    type="button"
+                    aria-current={isActive ? "true" : undefined}
+                    onClick={() => goTo(index)}
+                    className={cn(
+                      "group w-[10.5rem] shrink-0 border-b-2 py-3 pr-3 text-left transition-colors cursor-pointer sm:w-[14rem]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      "lg:w-full lg:shrink lg:border-b-0 lg:border-l-2 lg:py-3.5 lg:pl-5",
+                      isActive
+                        ? "border-primary"
+                        : "border-transparent lg:border-border lg:hover:border-muted-foreground"
+                    )}
+                  >
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {exp.period}
+                    </span>
+                    <span
+                      className={cn(
+                        "mt-0.5 block truncate text-sm font-semibold tracking-tight transition-colors lg:text-base",
+                        isActive
+                          ? "text-foreground"
+                          : "text-foreground/60 group-hover:text-foreground"
                       )}
                     >
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        {/* Company Logo Icon on the side */}
-                        <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
-                          <CompanyLogo
-                            company={exp.company}
-                            size="md"
-                            isCurrent={isCurrentlyWorking}
-                            className={cn(
-                              "transition-all duration-200",
-                              isSelected
-                                ? "border-primary/50 ring-2 ring-primary/10"
-                                : "group-hover:border-border"
-                            )}
-                          />
-                        </div>
-
-                        {/* Company Info with Text Hover Effects */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-xs font-mono text-muted-foreground flex items-center gap-1.5">
-                              <Calendar className="h-3 w-3 text-primary" />
-                              <span>{exp.period}</span>
-                            </span>
-
-                            {isCurrentlyWorking ? (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-400">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                Working Here
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-mono text-muted-foreground rounded border border-border px-1.5 py-0.5">
-                                {exp.type || "Worked"}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Company Name with Text Hover Slide/Color Effect */}
-                          <h3
-                            className={cn(
-                              "text-sm sm:text-base font-bold tracking-tight truncate transition-all duration-200",
-                              isSelected
-                                ? "text-foreground translate-x-1"
-                                : "text-foreground/85 group-hover:text-foreground group-hover:translate-x-1"
-                            )}
-                          >
-                            {exp.company}
-                          </h3>
-
-                          {/* Role with Hover Effect */}
-                          <p
-                            className={cn(
-                              "text-xs truncate mt-0.5 transition-colors duration-200",
-                              isSelected
-                                ? "text-primary font-medium"
-                                : "text-muted-foreground group-hover:text-foreground"
-                            )}
-                          >
-                            {exp.role}
-                          </p>
-                        </div>
-
-                        {/* Chevron Indicator */}
-                        <div
-                          className={cn(
-                            "self-center shrink-0 transition-all duration-200 text-muted-foreground",
-                            isSelected
-                              ? "text-primary translate-x-0.5"
-                              : "opacity-0 group-hover:opacity-100 group-hover:text-foreground group-hover:translate-x-0.5"
-                          )}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right Column: Active Experience Stage Details */}
-            <div className="lg:col-span-7 flex flex-col justify-between rounded-3xl border border-border bg-card/90 p-6 sm:p-8 backdrop-blur-xl shadow-xl relative overflow-hidden">
-              {/* Subtle top accent gradient */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent"
-              />
-
-              <div className="flex flex-col gap-5 sm:gap-6">
-                {/* Header Banner: Company Logo + Names + External Link */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5 sm:pb-6 border-b border-border">
-                  <div className="flex items-start gap-4">
-                    <CompanyLogo
-                      company={activeExp.company}
-                      size="lg"
-                      isCurrent={
-                        activeExp.isCurrent ||
-                        activeExp.period.toLowerCase().includes("present")
-                      }
-                      className="border-border shadow-md"
-                    />
-                    <div>
-                      {/* Domain Badge */}
-                      {activeDomain && (
-                        <div
-                          className={cn(
-                            "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-[11px] font-mono font-medium mb-2",
-                            activeDomain.badgeClass
-                          )}
-                        >
-                          {activeDomain.icon}
-                          <span>{activeDomain.label}</span>
-                        </div>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <span className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5 text-primary" />
-                          <span>{activeExp.period}</span>
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {activeExp.location}
-                        </span>
-                        {activeExp.type && (
-                          <>
-                            <span>•</span>
-                            <span className="rounded border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-mono text-muted-foreground">
-                              {activeExp.type}
-                            </span>
-                          </>
-                        )}
-                      </div>
-
-                      <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
-                        <span>{activeExp.company}</span>
-                        {activeExp.link && (
-                          <a
-                            href={activeExp.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors duration-150 p-1 hover:bg-muted rounded-md"
-                            aria-label={`Visit ${activeExp.company}`}
-                          >
-                            <ArrowUpRight className="h-4 w-4" />
-                          </a>
-                        )}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Status Tag */}
-                  {(activeExp.isCurrent ||
-                    activeExp.period.toLowerCase().includes("present")) && (
-                    <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-mono font-medium text-emerald-400 shadow-sm">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                      Currently Working
+                      {exp.company}
                     </span>
-                  )}
-                </div>
+                    <span
+                      className={cn(
+                        "hidden truncate text-sm lg:block",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      {exp.role}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+            <p className="mt-4 hidden text-xs text-muted-foreground lg:block">
+              {active + 1} of {count}. Scroll to move through companies.
+            </p>
+          </aside>
 
-                {/* Role Title with Text Hover Feedback */}
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/70 text-primary">
-                    <Briefcase className="h-4 w-4" />
-                  </div>
-                  <h4 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">
-                    {activeExp.role}
-                  </h4>
-                </div>
+          {/* Entries: a normal scrolling column */}
+          <div className="flex flex-col lg:col-span-8">
+            {safeExperiences.map((exp, index) => (
+              <article
+                key={exp.id}
+                ref={(el) => {
+                  entryRefs.current[index] = el;
+                }}
+                className={cn(
+                  "flex flex-col gap-5 border-b border-border py-8 last:border-b-0",
+                  "scroll-mt-[calc(var(--exp-sticky-top,0px)+var(--exp-header-h,0px)+6rem)] lg:scroll-mt-[calc(var(--exp-sticky-top,0px)+var(--exp-header-h,0px)+1.5rem)]",
+                  "lg:min-h-[70svh] lg:py-10 lg:transition-opacity lg:duration-300 motion-reduce:transition-none",
+                  index === active ? "lg:opacity-100" : "lg:opacity-50"
+                )}
+              >
+                <header className="flex flex-col gap-2.5">
+                  <DomainLabel company={exp.company} role={exp.role} />
+                  <h3 className="flex items-center gap-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
+                    {exp.company}
+                    {exp.link && (
+                      <a
+                        href={exp.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Visit ${exp.company}`}
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <ArrowUpRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                      </a>
+                    )}
+                  </h3>
+                  <p className="text-base font-medium text-primary sm:text-lg">{exp.role}</p>
+                  <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span>{exp.period}</span>
+                    {exp.location && <span>{exp.location}</span>}
+                    {exp.type && <span>{exp.type}</span>}
+                    {isCurrent(exp) && <CurrentTag />}
+                  </p>
+                </header>
 
-                {/* Narrative Summary */}
-                <p className="text-sm sm:text-base text-foreground/85 leading-relaxed">
-                  {activeExp.description}
+                <p className="max-w-prose text-sm text-foreground/85 leading-relaxed sm:text-base">
+                  {exp.description}
                 </p>
 
-                {/* Highlights List with Glowing Markers */}
-                {activeExp.highlights && activeExp.highlights.length > 0 && (
-                  <div className="flex flex-col gap-2.5 pt-1">
-                    <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                      Key Deliverables &amp; Technical Impact
-                    </span>
-                    <ul className="space-y-2.5">
-                      {activeExp.highlights.map((highlight, idx) => (
-                        <li
-                          key={idx}
-                          className="group/item flex items-start gap-3 text-xs sm:text-sm text-foreground/80 leading-relaxed transition-colors hover:text-foreground"
-                        >
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0 transition-transform duration-200 group-hover/item:scale-150" />
-                          <span>{highlight}</span>
-                        </li>
-                      ))}
-                    </ul>
+                {exp.highlights && exp.highlights.length > 0 && (
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-sm font-semibold text-foreground">
+                      Key deliverables and technical impact
+                    </h4>
+                    <Highlights items={exp.highlights} />
                   </div>
                 )}
 
-                {/* Tech Stack Pills with Rich Hover Effect */}
-                <div className="flex flex-col gap-2 pt-3 border-t border-border">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                    Technologies &amp; Systems Applied
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {activeExp.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-mono text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:bg-muted hover:text-foreground hover:scale-[1.02] cursor-default"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-col gap-2 border-t border-border pt-5">
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Technologies and systems
+                  </h4>
+                  <Technologies items={exp.technologies} />
                 </div>
-              </div>
-
-              {/* Bottom Pagination & Interactive Controls */}
-              <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-muted-foreground">
-                    <span className="text-foreground font-bold">
-                      {String(selectedIndex + 1).padStart(2, "0")}
-                    </span>{" "}
-                    / {String(safeExperiences.length).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handlePrev}
-                    aria-label="Previous company experience"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border/80 transition-all cursor-pointer"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    aria-label="Next company experience"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border/80 transition-all cursor-pointer"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-
-                  {activeExp.link && (
-                    <a
-                      href={activeExp.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-primary text-primary-foreground px-4 py-1.5 text-xs font-semibold hover:bg-primary/90 transition-all cursor-pointer shadow-sm"
-                    >
-                      <span>Visit Company</span>
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
-        )}
-
-        {/* ─── VIEW 2: STREAM LIST WITH COMPANY ICONS ON THE SIDE ───────────── */}
-        {viewMode === "list" && (
-          <div className="divide-y divide-border border-y border-border">
-            {safeExperiences.map((exp) => {
-              const isCurrentlyWorking =
-                exp.isCurrent || exp.period.toLowerCase().includes("present");
-              const domain = getDomainInfo(exp.company, exp.role);
-
-              return (
-                <div
-                  key={exp.id}
-                  className="group py-10 sm:py-12 transition-all duration-200 hover:bg-muted/30 px-2 sm:px-6 -mx-2 sm:-mx-6 rounded-2xl"
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-                    {/* Meta Column with Company Icon on the side */}
-                    <div className="lg:col-span-4 flex flex-col justify-between">
-                      <div className="flex items-start gap-4">
-                        {/* Company Logo Icon on the side */}
-                        <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
-                          <CompanyLogo
-                            company={exp.company}
-                            size="lg"
-                            isCurrent={isCurrentlyWorking}
-                            className="group-hover:border-border"
-                          />
-                        </div>
-
-                        {/* Company Details */}
-                        <div className="flex-1 min-w-0">
-                          {domain && (
-                            <div
-                              className={cn(
-                                "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-mono font-medium mb-1.5",
-                                domain.badgeClass
-                              )}
-                            >
-                              {domain.icon}
-                              <span>{domain.label}</span>
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground tracking-wider mb-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-primary" />
-                            <span>{exp.period}</span>
-                          </div>
-
-                          <h3 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2 transition-transform duration-200 group-hover:translate-x-1">
-                            <span>{exp.company}</span>
-                            {exp.link && (
-                              <a
-                                href={exp.link}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="opacity-0 group-hover:opacity-100 transition-all duration-200 text-muted-foreground hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                                aria-label={`Visit ${exp.company}`}
-                              >
-                                <ArrowUpRight className="h-4 w-4" />
-                              </a>
-                            )}
-                          </h3>
-
-                          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {exp.location}
-                            </span>
-                            {exp.type && (
-                              <>
-                                <span>•</span>
-                                <span className="rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                                  {exp.type}
-                                </span>
-                              </>
-                            )}
-                            {isCurrentlyWorking && (
-                              <>
-                                <span>•</span>
-                                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                  Currently Working
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Details Column */}
-                    <div className="lg:col-span-8 flex flex-col gap-4">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-primary" />
-                        <h4 className="text-lg font-semibold text-foreground tracking-tight transition-colors">
-                          {exp.role}
-                        </h4>
-                      </div>
-
-                      <p className="text-sm text-foreground/80 leading-relaxed transition-colors">
-                        {exp.description}
-                      </p>
-
-                      {/* Highlights Bullet List with Text Hover Effects */}
-                      {exp.highlights && exp.highlights.length > 0 && (
-                        <ul className="space-y-2 mt-1">
-                          {exp.highlights.map((highlight, idx) => (
-                            <li
-                              key={idx}
-                              className="group/item flex items-start gap-2.5 text-xs sm:text-sm text-foreground/80 leading-relaxed transition-colors hover:text-foreground"
-                            >
-                              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0 transition-transform duration-200 group-hover/item:scale-150" />
-                              <span>{highlight}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-
-                      {/* Tech Stack Pills with Enhanced Hover State */}
-                      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
-                        {exp.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="rounded-md border border-border bg-muted/60 px-2.5 py-1 text-xs font-mono text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:bg-muted hover:text-foreground"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </div>
       </div>
     </section>
   );

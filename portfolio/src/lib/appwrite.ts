@@ -1,7 +1,17 @@
-import { Client, Account, Databases, ID, Models, Storage } from "appwrite";
+import { Client, Account, Databases, ID, Models, Storage, Teams } from "appwrite";
 
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://sfo.cloud.appwrite.io/v1";
 const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "6ad0f8ab0025a03812f7";
+const adminTeamId = process.env.NEXT_PUBLIC_APPWRITE_ADMIN_TEAM_ID || "6ad10274001680d2dbe9";
+const blogBucketId = process.env.NEXT_PUBLIC_APPWRITE_BLOG_BUCKET_ID || "blog-images";
+const adminUserIds = (process.env.NEXT_PUBLIC_ADMIN_USER_IDS || "6ad10260002175ea6ccb")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "vikasndhavande@gmail.com")
+  .split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
 
 const client = new Client()
   .setEndpoint(endpoint)
@@ -10,6 +20,117 @@ const client = new Client()
 const account = new Account(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
+const teams = new Teams(client);
+
+export interface UserRoleInfo {
+  isAdmin: boolean;
+  role: "admin" | "member" | "guest";
+  user: Models.User<Models.Preferences> | null;
+}
+
+/**
+ * Checks if the user is an admin or a member.
+ * Checks against the Appwrite Admin Team membership or configured admin user IDs.
+ */
+async function checkUserRole(currentUser?: Models.User<Models.Preferences> | null): Promise<UserRoleInfo> {
+  try {
+    const user = currentUser || (await account.get());
+    if (!user) {
+      return { isAdmin: false, role: "guest", user: null };
+    }
+
+    // 1. Check by explicit email match (e.g. vikasndhavande@gmail.com)
+    if (user.email && adminEmails.includes(user.email.toLowerCase().trim())) {
+      return { isAdmin: true, role: "admin", user };
+    }
+
+    // 2. Check by user ID match
+    if (adminUserIds.includes(user.$id)) {
+      return { isAdmin: true, role: "admin", user };
+    }
+
+    // 3. Check by Appwrite user labels (if set in console)
+    const labels = (user as unknown as { labels?: string[] })?.labels;
+    if (Array.isArray(labels) && (labels.includes("admin") || labels.includes("admins"))) {
+      return { isAdmin: true, role: "admin", user };
+    }
+
+    // 4. Check by Appwrite Team membership
+    try {
+      const userTeams = await teams.list();
+      const target = adminTeamId.toLowerCase().trim();
+      const hasAdminTeam = userTeams.teams.some((t) => {
+        const name = (t.name || "").toLowerCase().trim();
+        const id = (t.$id || "").toLowerCase().trim();
+        return (
+          id === target ||
+          name === target ||
+          name === "admin" ||
+          name === "admins" ||
+          name.includes("admin") ||
+          id.includes("admin")
+        );
+      });
+      if (hasAdminTeam) {
+        return { isAdmin: true, role: "admin", user };
+      }
+    } catch {
+      // Teams check failure (e.g. rate limit or team network)
+    }
+
+    // Authenticated regular user is a Member
+    return { isAdmin: false, role: "member", user };
+  } catch {
+    return { isAdmin: false, role: "guest", user: null };
+  }
+}
+
+/**
+ * Convenience check for admin status.
+ */
+async function isAdmin(): Promise<boolean> {
+  const roleInfo = await checkUserRole();
+  return roleInfo.isAdmin;
+}
+
+/**
+ * Convert string to clean URL-safe slug.
+ */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Upload an image to the Appwrite blog storage bucket.
+ */
+async function uploadBlogImage(file: File): Promise<string> {
+  if (!blogBucketId) {
+    throw new Error("NEXT_PUBLIC_APPWRITE_BLOG_BUCKET_ID is not configured.");
+  }
+  const uploaded = await storage.createFile(blogBucketId, ID.unique(), file);
+  return storage.getFileView(blogBucketId, uploaded.$id).toString();
+}
+
+/**
+ * Get direct view URL for a file in a storage bucket.
+ */
+function fileUrl(bucketId: string, fileId: string): string {
+  return storage.getFileView(bucketId, fileId).toString();
+}
+
+const cfg = {
+  endpoint,
+  projectId,
+  adminTeamId,
+  blogBucketId,
+  databaseId: process.env.NEXT_PUBLIC_APPWRITE_BLOG_DATABASE_ID || "6ad10e56000c6dabf276",
+  postsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_BLOG_COLLECTION_ID || "posts",
+};
 
 /**
  * Sign in with email and password.
@@ -153,6 +274,13 @@ export {
   account,
   databases,
   storage,
+  teams,
+  checkUserRole,
+  isAdmin,
+  slugify,
+  uploadBlogImage,
+  fileUrl,
+  cfg,
   signInWithEmail,
   signUpWithEmail,
   signInWithGithub,

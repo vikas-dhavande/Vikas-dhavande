@@ -17,6 +17,25 @@ export interface BlogPost {
   category: "Aerospace Avionics" | "Embedded Systems" | "HIL Simulation" | "RTOS & Firmware" | "Hardware Design" | string;
   tags: string[];
   featured?: boolean;
+  status?: "published" | "draft";
+}
+
+export interface BlogReaction {
+  likes: number;
+  rockets: number;
+  hearts: number;
+  ideas: number;
+  userReactions: string[]; // Reactions active for the current user (e.g. ['like', 'rocket'])
+}
+
+export interface BlogComment {
+  id: string;
+  postSlug: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface BlogFilterOptions {

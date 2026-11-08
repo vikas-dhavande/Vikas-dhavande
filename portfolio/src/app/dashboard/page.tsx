@@ -11,13 +11,14 @@ import {
   CheckCircle2,
   CircleUserRound,
   Clock3,
+  FileEdit,
   Mail,
   Phone,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { Models } from "appwrite";
-import { account, storage } from "@/lib/appwrite";
+import { account, storage, checkUserRole } from "@/lib/appwrite";
 import LoginForm from "@/components/shadcn-space/blocks/login-01/login";
 
 type DashboardPreferences = Models.Preferences & {
@@ -46,6 +47,7 @@ function formatRegistrationDate(value: string) {
 
 export default function DashboardPage() {
   const [user, setUser] = useState<DashboardUser | null>(null);
+  const [userRole, setUserRole] = useState<"admin" | "member" | "guest">("guest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -54,13 +56,16 @@ export default function DashboardPage() {
 
     account
       .get<DashboardPreferences>()
-      .then((accountUser) => {
+      .then(async (accountUser) => {
         if (!active) return;
         setUser(accountUser);
+        const roleInfo = await checkUserRole(accountUser);
+        if (active) setUserRole(roleInfo.role);
       })
       .catch((accountError) => {
         if (!active) return;
         setUser(null);
+        setUserRole("guest");
         if (!isUnauthorizedError(accountError)) {
           setError(
             accountError instanceof Error
@@ -82,7 +87,10 @@ export default function DashboardPage() {
     setError("");
     setLoading(true);
     try {
-      setUser(await account.get<DashboardPreferences>());
+      const currentUser = await account.get<DashboardPreferences>();
+      setUser(currentUser);
+      const roleInfo = await checkUserRole(currentUser);
+      setUserRole(roleInfo.role);
       window.dispatchEvent(new Event("appwrite-auth-changed"));
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Could not load your account.");
@@ -180,6 +188,17 @@ export default function DashboardPage() {
                     <h2 className="truncate text-2xl font-semibold tracking-tight">
                       Welcome, {user.name || "there"}
                     </h2>
+                    {userRole === "admin" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-purple-500/40 bg-purple-500/15 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-400 shadow-xs">
+                        <ShieldCheck className="size-3.5" />
+                        Admin
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+                        <UserRound className="size-3.5" />
+                        Member
+                      </span>
+                    )}
                     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                       <BadgeCheck className="size-3.5" />
                       Signed in
@@ -187,13 +206,24 @@ export default function DashboardPage() {
                   </div>
                   <p className="mt-1 truncate text-sm text-muted-foreground">{user.email}</p>
                 </div>
-                <Link
-                  href="/profile"
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  <UserRound className="size-4" />
-                  Edit profile
-                </Link>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {userRole === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-purple-500/40 bg-purple-500/10 px-4 text-sm font-semibold text-purple-600 dark:text-purple-300 transition-colors hover:bg-purple-500/20"
+                    >
+                      <FileEdit className="size-4" />
+                      Blog Manager
+                    </Link>
+                  )}
+                  <Link
+                    href="/profile"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    <UserRound className="size-4" />
+                    Edit profile
+                  </Link>
+                </div>
               </div>
             </section>
 

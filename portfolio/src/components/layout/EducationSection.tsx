@@ -1,75 +1,629 @@
-import React from "react";
-import { Award, Calendar, GraduationCap, MapPin } from "lucide-react";
+
+"use client";
+
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EducationItem } from "@/lib/portfolio-types";
+import { cn } from "@/lib/utils";
 
 interface EducationSectionProps {
   education: EducationItem[];
+  /** Height of your fixed navbar in px (or any CSS length). Auto-detected when omitted. */
+  stickyTop?: number | string;
 }
 
-export function EducationSection({ education }: EducationSectionProps) {
-  return (
-    <section id="education" className="py-16 sm:py-24 border-t border-border bg-background/80 transition-colors duration-200">
-      <div className="w-full px-4 lg:px-8 max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3.5 py-1 text-xs text-muted-foreground mb-4">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]" />
-              <span>Academic Credentials</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-              Education &amp; Qualifications
-            </h2>
-          </div>
-          <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
-            Formal engineering foundations spanning electronics, communication engineering, and industrial electrical systems.
-          </p>
-        </div>
+const isCurrent = (edu: EducationItem) =>
+  /present|current|ongoing/i.test(edu.period);
 
-        {/* Minimalist High-Contrast Education Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {education.map((edu) => (
-            <div
-              key={edu.id}
-              className="group rounded-2xl border border-border bg-card/60 p-6 sm:p-7 backdrop-blur-sm transition-all duration-200 hover:border-foreground/20 hover:bg-card flex flex-col justify-between shadow-xs"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-secondary/80 text-muted-foreground group-hover:text-foreground group-hover:border-foreground/20 transition-colors">
-                    <GraduationCap className="h-5 w-5" />
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                    <Calendar className="h-3 w-3 text-[#8B5CF6]" />
-                    <span>{edu.period}</span>
-                  </div>
+// Field label per degree. Text only, with a colored dot as the accent.
+const getFieldInfo = (degree: string, institution: string) => {
+  const text = `${degree} ${institution}`.toLowerCase();
+
+  if (text.includes("communication"))
+    return { label: "Communication engineering", dot: "bg-blue-400" };
+
+  if (text.includes("electrical"))
+    return { label: "Industrial electrical systems", dot: "bg-amber-400" };
+
+  if (text.includes("electronic"))
+    return { label: "Electronics engineering", dot: "bg-violet-400" };
+
+  return { label: "Engineering foundations", dot: "bg-zinc-400" };
+};
+
+function CurrentTag({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400",
+        className
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      Currently studying here
+    </span>
+  );
+}
+
+function FieldLabel({
+  degree,
+  institution,
+}: {
+  degree: string;
+  institution: string;
+}) {
+  const field = getFieldInfo(degree, institution);
+
+  return (
+    <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <span className={cn("h-1.5 w-1.5 rounded-full", field.dot)} />
+      {field.label}
+    </span>
+  );
+}
+
+// ─── Education duration calculation ───────────────────────────────────────
+
+interface ProgramDuration {
+  completed: number;
+  ongoing: number;
+}
+
+function getProgramDuration(edu: EducationItem): ProgramDuration {
+  const degree = edu.degree.toLowerCase();
+  const institution = edu.institution.toLowerCase();
+  const text = `${degree} ${institution}`
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  // B.Tech: 1.5 years completed, 1.5 years ongoing
+  if (
+    text.includes("bachelor of technology") ||
+    /\bb tech\b/.test(text) ||
+    /\bbtech\b/.test(text)
+  ) {
+    return {
+      completed: 1.5,
+      ongoing: 1.5,
+    };
+  }
+
+  // Diploma: 3 years completed
+  if (text.includes("diploma")) {
+    return {
+      completed: 3,
+      ongoing: 0,
+    };
+  }
+
+  // ITI: 2 years completed
+  if (
+    text.includes("industrial training institute") ||
+    /\biti\b/.test(text) ||
+    (text.includes("electrician") && !text.includes("diploma"))
+  ) {
+    return {
+      completed: 2,
+      ongoing: 0,
+    };
+  }
+
+  return {
+    completed: 0,
+    ongoing: 0,
+  };
+}
+
+function getEducationStats(education: EducationItem[]) {
+  const completedYears = education.reduce(
+    (total, edu) => total + getProgramDuration(edu).completed,
+    0
+  );
+
+  const institutions = new Set(
+    education.map((edu) => edu.institution.trim().toLowerCase())
+  );
+
+  const locations = new Set(
+    education
+      .map((edu) => edu.location?.trim().toLowerCase())
+      .filter((location): location is string => Boolean(location))
+  );
+
+  return {
+    completedYears,
+    institutions: institutions.size,
+    qualifications: education.length,
+    locations: locations.size,
+  };
+}
+
+// ─── Animated statistics ───────────────────────────────────────────────────
+
+function useCountUp(target: number, decimals: number, duration = 1100) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return;
+    }
+
+    let frame = 0;
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+
+      setValue(target * eased);
+
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+
+  return value.toFixed(decimals);
+}
+
+function Stat({
+  value,
+  decimals = 0,
+  suffix,
+  label,
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  label: string;
+}) {
+  const shown = useCountUp(value, decimals);
+
+  return (
+    <div className="flex min-w-0 flex-col sm:px-4 sm:first:pl-0 sm:last:pr-0">
+      <span className="text-xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
+        {shown}
+        {suffix && <span className="text-primary">{suffix}</span>}
+      </span>
+
+      <span className="mt-0.5 truncate text-[10px] text-muted-foreground sm:text-xs">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ─── Education statistics ──────────────────────────────────────────────────
+
+function EducationStats({ education }: { education: EducationItem[] }) {
+  const stats = useMemo(
+    () => getEducationStats(education),
+    [education]
+  );
+
+  return (
+    <div
+      role="group"
+      aria-label="Education in numbers"
+      className="grid grid-flow-col auto-cols-fr gap-2 sm:flex sm:gap-0 sm:divide-x sm:divide-border"
+    >
+      {stats.completedYears > 0 && (
+        <Stat
+          value={stats.completedYears}
+          decimals={1}
+          suffix="+"
+          label="Years completed"
+        />
+      )}
+
+      <Stat value={stats.qualifications} label="Qualifications" />
+
+      <Stat value={stats.institutions} label="Institutions" />
+
+      {stats.locations > 0 && (
+        <Stat value={stats.locations} label="Locations" />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Scroll-spy layout (no scroll-jacking), same as ExperienceSection:
+ *  - The page scrolls normally. Every institution is a full entry in one long column.
+ *  - The institution list stays in view (side rail on desktop, "you are here" bar on phones)
+ *    and highlights whichever entry you are reading, scrolling down OR up.
+ *  - Tapping an institution scrolls to it.
+ *
+ * A fixed/sticky site navbar is detected automatically so the header sits below it.
+ * To set it by hand, pass stickyTop (e.g. stickyTop={64}).
+ */
+export function EducationSection({
+  education,
+  stickyTop,
+}: EducationSectionProps) {
+  const safeEducation = useMemo(() => education || [], [education]);
+  const count = safeEducation.length;
+
+  const [active, setActive] = useState(0);
+
+  const entryRefs = useRef<(HTMLElement | null)[]>([]);
+  const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const navRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const [headerH, setHeaderH] = useState(0);
+  const [navOffset, setNavOffset] = useState(0);
+
+  // Find a fixed/sticky site navbar at the top so our sticky header sits BELOW it
+  useEffect(() => {
+    if (stickyTop !== undefined) return;
+
+    let frame = 0;
+
+    const detect = () => {
+      frame = 0;
+      let offset = 0;
+
+      document
+        .querySelectorAll<HTMLElement>("header, nav, [role='banner']")
+        .forEach((el) => {
+          if (sectionRef.current?.contains(el)) return;
+
+          const position = getComputedStyle(el).position;
+
+          if (position !== "fixed" && position !== "sticky") return;
+
+          const r = el.getBoundingClientRect();
+
+          if (r.width < window.innerWidth * 0.5 || r.height <= 0) return;
+          if (r.top > 8 || r.bottom <= 0) return;
+
+          offset = Math.max(offset, Math.round(r.bottom));
+        });
+
+      setNavOffset(offset);
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(detect);
+    };
+
+    detect();
+
+    const late = window.setTimeout(detect, 600);
+
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, { passive: true });
+
+    return () => {
+      window.clearTimeout(late);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule);
+
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [stickyTop]);
+
+  // Dev-only: a parent with overflow set silently breaks position: sticky
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+
+    let node = sectionRef.current?.parentElement;
+
+    while (node && node !== document.documentElement) {
+      const cs = getComputedStyle(node);
+
+      if (/(auto|hidden|scroll|clip)/.test(`${cs.overflowX} ${cs.overflowY}`)) {
+        console.warn(
+          "[EducationSection] A parent element has overflow set, so the sticky header cannot stick. Remove overflow from:",
+          node
+        );
+        break;
+      }
+
+      node = node.parentElement;
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = headerRef.current;
+
+    if (!el) return;
+
+    const measure = () => setHeaderH(el.offsetHeight);
+
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+
+    return () => ro.disconnect();
+  }, [count]);
+
+  // Scroll position -> active entry
+  useEffect(() => {
+    if (!count) return;
+
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+
+      const line = window.innerHeight * 0.4;
+      let current = 0;
+
+      for (let i = 0; i < count; i++) {
+        const el = entryRefs.current[i];
+
+        if (el && el.getBoundingClientRect().top <= line) {
+          current = i;
+        }
+      }
+
+      const last = entryRefs.current[count - 1];
+
+      if (
+        last &&
+        last.getBoundingClientRect().bottom <= window.innerHeight + 2
+      ) {
+        current = count - 1;
+      }
+
+      setActive(current);
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [count]);
+
+  if (!count) return null;
+
+  const goTo = (index: number) => {
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    entryRefs.current[index]?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
+  return (
+    <section
+      id="education"
+      ref={sectionRef}
+      aria-label="Education and qualifications"
+      style={
+        {
+          "--edu-sticky-top":
+            stickyTop !== undefined
+              ? typeof stickyTop === "number"
+                ? `${stickyTop}px`
+                : stickyTop
+              : `${navOffset}px`,
+          "--edu-header-h": `${headerH}px`,
+        } as React.CSSProperties
+      }
+      className="relative w-full border-t border-border bg-background/80 pb-10 sm:pb-14 lg:pb-16 selection:bg-primary/30"
+    >
+      {/* Title and numbers stay on top until the end of this section */}
+      <div
+        ref={headerRef}
+        className="sticky top-[var(--edu-sticky-top,0px)] z-30 border-b border-border bg-background/95 backdrop-blur"
+      >
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 sm:py-4 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8 lg:py-5 2xl:max-w-[96rem]">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-5xl 2xl:text-6xl">
+            Education
+          </h2>
+
+          <EducationStats education={safeEducation} />
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-8 2xl:max-w-[96rem]">
+        <p className="mb-6 max-w-xl text-sm text-muted-foreground leading-relaxed sm:mb-8">
+          Formal engineering foundations spanning electronics, communication
+          engineering, and industrial electrical systems.
+        </p>
+
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-12 lg:gap-12">
+          {/* Institution list: sticky bar on phones, sticky side rail on desktop */}
+          <aside
+            className={cn(
+              "sticky z-20 top-[calc(var(--edu-sticky-top,0px)+var(--edu-header-h,0px))]",
+              "-mx-4 border-b border-border bg-background/90 px-4 backdrop-blur sm:-mx-6 sm:px-6",
+              "lg:top-[calc(var(--edu-sticky-top,0px)+var(--edu-header-h,0px)+1.5rem)] lg:col-span-4 lg:mx-0 lg:self-start lg:border-b-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none"
+            )}
+          >
+            {/* Phone: one clear "you are here" bar */}
+            <div className="py-2.5 lg:hidden">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground">
+                    {safeEducation[active]?.period}
+                  </p>
+
+                  <p className="text-sm font-semibold leading-snug text-foreground">
+                    {safeEducation[active]?.institution}
+                  </p>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight leading-snug">
-                  {edu.degree}
-                </h3>
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {active + 1}/{count}
+                </span>
 
-                <p className="text-sm font-semibold text-[#8B5CF6] mt-1.5 flex items-center gap-1.5">
-                  <Award className="h-3.5 w-3.5" />
-                  {edu.institution}
-                </p>
+                <button
+                  type="button"
+                  aria-label="Previous institution"
+                  disabled={active === 0}
+                  onClick={() => goTo(active - 1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-opacity disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
 
-                {edu.details && (
-                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                    {edu.details}
-                  </p>
-                )}
+                <button
+                  type="button"
+                  aria-label="Next institution"
+                  disabled={active === count - 1}
+                  onClick={() => goTo(active + 1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-opacity disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
 
-              {edu.location && (
-                <div className="mt-5 pt-3 border-t border-border flex items-center gap-1.5 text-xs text-muted-foreground/80">
-                  <MapPin className="h-3 w-3" />
-                  <span>{edu.location}</span>
-                </div>
-              )}
+              <div className="mt-1 flex gap-1">
+                {safeEducation.map((edu, index) => (
+                  <button
+                    key={edu.id}
+                    type="button"
+                    aria-label={`Go to ${edu.institution}`}
+                    aria-current={index === active ? "true" : undefined}
+                    onClick={() => goTo(index)}
+                    className="group flex-1 py-2"
+                  >
+                    <span
+                      className={cn(
+                        "block h-1 rounded-full transition-colors",
+                        index === active ? "bg-primary" : "bg-border"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
+
+            <nav
+              ref={navRef}
+              aria-label="Institutions"
+              className="relative hidden lg:flex lg:max-h-[calc(100svh-var(--edu-sticky-top,0px)-var(--edu-header-h,0px)-7rem)] lg:flex-col lg:overflow-y-auto"
+            >
+              {safeEducation.map((edu, index) => {
+                const isActive = index === active;
+
+                return (
+                  <button
+                    key={edu.id}
+                    ref={(el) => {
+                      chipRefs.current[index] = el;
+                    }}
+                    type="button"
+                    aria-current={isActive ? "true" : undefined}
+                    onClick={() => goTo(index)}
+                    className={cn(
+                      "group w-full shrink border-l-2 py-3.5 pl-5 pr-3 text-left transition-colors cursor-pointer",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      isActive
+                        ? "border-primary"
+                        : "border-border hover:border-muted-foreground"
+                    )}
+                  >
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {edu.period}
+                    </span>
+
+                    <span
+                      className={cn(
+                        "mt-0.5 block truncate text-base font-semibold tracking-tight transition-colors",
+                        isActive
+                          ? "text-foreground"
+                          : "text-foreground/60 group-hover:text-foreground"
+                      )}
+                    >
+                      {edu.institution}
+                    </span>
+
+                    <span
+                      className={cn(
+                        "block truncate text-sm",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      {edu.degree}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <p className="mt-4 hidden text-xs text-muted-foreground lg:block">
+              {active + 1} of {count}. Scroll to move through qualifications.
+            </p>
+          </aside>
+
+          {/* Entries: a normal scrolling column */}
+          <div className="flex flex-col lg:col-span-8">
+            {safeEducation.map((edu, index) => (
+              <article
+                key={edu.id}
+                ref={(el) => {
+                  entryRefs.current[index] = el;
+                }}
+                className={cn(
+                  "flex flex-col gap-5 border-b border-border py-8 last:border-b-0",
+                  "scroll-mt-[calc(var(--edu-sticky-top,0px)+var(--edu-header-h,0px)+6rem)] lg:scroll-mt-[calc(var(--edu-sticky-top,0px)+var(--edu-header-h,0px)+1.5rem)]",
+                  "lg:min-h-[50svh] lg:py-10 lg:transition-opacity lg:duration-300 motion-reduce:transition-none",
+                  index === active ? "lg:opacity-100" : "lg:opacity-50"
+                )}
+              >
+                <header className="flex flex-col gap-2.5">
+                  <FieldLabel
+                    degree={edu.degree}
+                    institution={edu.institution}
+                  />
+
+                  <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl xl:text-4xl">
+                    {edu.institution}
+                  </h3>
+
+                  <p className="text-base font-medium text-primary sm:text-lg">
+                    {edu.degree}
+                  </p>
+
+                  <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span>{edu.period}</span>
+                    {edu.location && <span>{edu.location}</span>}
+                    {isCurrent(edu) && <CurrentTag />}
+                  </p>
+                </header>
+
+                {edu.details && (
+                  <div className="flex flex-col gap-2 border-t border-border pt-5">
+                    <h4 className="text-sm font-semibold text-foreground">
+                      Focus and coursework
+                    </h4>
+
+                    <p className="max-w-prose text-sm text-foreground/85 leading-relaxed sm:text-base">
+                      {edu.details}
+                    </p>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
+
+export default EducationSection;

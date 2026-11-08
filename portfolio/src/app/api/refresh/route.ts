@@ -1,7 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const secret = process.env.REVALIDATE_SECRET;
+  if (secret) {
+    const authHeader = req.headers.get("authorization");
+    const querySecret = req.nextUrl.searchParams.get("secret");
+    const isAuthorized =
+      authHeader === `Bearer ${secret}` || querySecret === secret;
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const startTime = Date.now();
   try {
     // Invalidate full page cache and static shells for the portfolio
@@ -27,6 +39,6 @@ export async function POST() {
   }
 }
 
-export async function GET() {
-  return POST();
+export async function GET(req: NextRequest) {
+  return POST(req);
 }

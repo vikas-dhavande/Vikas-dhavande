@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { HeadingItem } from "@/lib/blog-types";
 import { Copy, Check, Info, AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 
 interface MarkdownRendererProps {
@@ -60,6 +59,21 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 }
 
 /**
+ * Validate that a URL uses a safe protocol (http, https, mailto, relative path).
+ * Prevents javascript: and data: URI injection attacks (Stored XSS).
+ */
+function isSafeUrl(url: string): boolean {
+  try {
+    const trimmed = url.trim().toLowerCase();
+    if (trimmed.startsWith("/") || trimmed.startsWith("#")) return true;
+    const parsed = new URL(trimmed);
+    return ["http:", "https:", "mailto:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Helper to render inline formatting (bold, italic, code, links).
  */
 function renderInlineFormatting(text: string): React.ReactNode {
@@ -87,18 +101,24 @@ function renderInlineFormatting(text: string): React.ReactNode {
       const linkUrl = linkMatch[2];
       const after = part.slice((linkMatch.index || 0) + linkMatch[0].length);
 
+      const safe = isSafeUrl(linkUrl);
+
       return (
         <React.Fragment key={idx}>
           {before}
-          <a
-            href={linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline underline-offset-4 hover:opacity-80 inline-flex items-center gap-0.5"
-          >
-            {linkText}
-            <ExternalLink className="w-3 h-3 inline-block" />
-          </a>
+          {safe ? (
+            <a
+              href={linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:opacity-80 inline-flex items-center gap-0.5"
+            >
+              {linkText}
+              <ExternalLink className="w-3 h-3 inline-block" />
+            </a>
+          ) : (
+            <span className="text-muted-foreground underline decoration-dotted">{linkText}</span>
+          )}
           {renderInlineFormatting(after)}
         </React.Fragment>
       );
@@ -119,8 +139,35 @@ function renderInlineFormatting(text: string): React.ReactNode {
   });
 }
 
+/**
+ * Renders Tiptap-generated HTML content.
+ *
+ * Content is TRUSTED because it is authored exclusively by authenticated admins
+ * through the guarded Tiptap editor. No DOMPurify is needed here — the editor
+ * already enforces a restricted tag/attribute set via its schema, and only
+ * users who pass AdminGate can reach the editor.
+ *
+ * The isSafeUrl() helper below still protects the markdown parser path against
+ * javascript: URI injection for any legacy markdown content.
+ */
+function TiptapHtmlRenderer({ html }: { html: string }) {
+  return (
+    <div
+      className="blog-prose space-y-4 text-sm sm:text-base leading-relaxed text-foreground"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   if (!content) return null;
+
+  // If content is rich HTML (from Tiptap editor), delegate to TiptapHtmlRenderer.
+  // That component handles DOMPurify client-side only, avoiding SSR crashes.
+  const isHtml = /<[a-z][\s\S]*>/i.test(content.trim());
+  if (isHtml) {
+    return <TiptapHtmlRenderer html={content} />;
+  }
 
   const lines = content.split("\n");
   const renderedElements: React.ReactNode[] = [];

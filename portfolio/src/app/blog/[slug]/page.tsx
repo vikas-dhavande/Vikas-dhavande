@@ -6,6 +6,7 @@ import { getBlogPostBySlug, getRelatedPosts, getAllBlogSlugs } from "@/lib/blog-
 import { ReadingProgressBar } from "@/components/blog/ReadingProgressBar";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
+import { BlogInteractions } from "@/components/blog/BlogInteractions";
 import { extractHeadings } from "@/lib/blog-utils";
 import { BlogCard } from "@/components/blog/BlogCard";
 import {
@@ -103,99 +104,103 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         </div>
       </div>
 
-      <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        {/* ── Post Header ── */}
-        <header className="max-w-3xl space-y-6 pb-10 border-b border-border/80">
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="px-3 py-1 rounded-full font-semibold bg-primary/10 text-primary border border-primary/20">
-              {post.category}
-            </span>
-            <span className="inline-flex items-center gap-1 text-muted-foreground">
-              <Calendar className="w-3.5 h-3.5" />
-              {formattedDate}
-            </span>
-            <span className="inline-flex items-center gap-1 text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              {post.readTimeMinutes} min read
-            </span>
-          </div>
+      <article className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        {/* ── 3-Column Layout ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
+          {/* ── Column 1: Left Rail (Navigation, Table of Contents, Citation) ── */}
+          <aside className="hidden lg:block lg:col-span-3 sticky top-24 space-y-6">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span>Back to all publications</span>
+            </Link>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
-            {post.title}
-          </h1>
-
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            {post.excerpt}
-          </p>
-
-          {/* Author Byline */}
-          <div className="pt-2 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#FF6D1B] via-[#E11D48] to-[#6B5FFF] p-0.5 shadow-xs">
-                <div className="h-full w-full rounded-full bg-card flex items-center justify-center font-bold text-sm text-foreground">
-                  {post.author.name.charAt(0)}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
-                <p className="text-xs text-muted-foreground">{post.author.role}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-lg border border-border/60">
-              <Bookmark className="w-3.5 h-3.5 text-primary" />
-              <span>Avionics Standard Reference</span>
-            </div>
-          </div>
-        </header>
-
-        {/* ── Main Layout: Content + TOC Rail ── */}
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Main Article Body (8 cols on desktop) */}
-          <div className="lg:col-span-8 space-y-6">
-            <MarkdownRenderer content={post.content} />
-
-            {/* Post Tags */}
-            <div className="pt-8 mt-12 border-t border-border flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mr-2">
-                <Tag className="w-3.5 h-3.5" /> Tags:
-              </span>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2.5 py-1 rounded-md text-xs font-mono bg-secondary text-secondary-foreground border border-border"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Rail: Table of Contents & Actions (4 cols on desktop) */}
-          <aside className="hidden lg:block lg:col-span-4 sticky top-24 space-y-6">
             {/* Table of Contents */}
             <TableOfContents headings={headings} />
 
-            {/* Share & Attribution Box */}
-            <div className="p-4 rounded-xl border border-border bg-card/40 backdrop-blur-md space-y-3">
+            {/* Author Citation Card */}
+            <div className="p-4 rounded-xl border border-border bg-card/40 backdrop-blur-md space-y-3 shadow-xs">
               <div className="flex items-center gap-2 text-xs font-semibold text-foreground uppercase tracking-wider">
                 <Share2 className="w-3.5 h-3.5 text-primary" />
                 <span>Reference & Citation</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Authored by {post.author.name} for the AeroSys Engineering Hub. Verified against
-                aerospace HIL simulation protocols.
+                Authored by <strong className="text-foreground">{post.author.name}</strong> ({post.author.role}) for the AeroSys Engineering Hub.
               </p>
-              <div className="pt-2">
-                <Link
-                  href="/blog"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  Explore all technical whitepapers
-                </Link>
+              <div className="pt-1 flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+                <Bookmark className="w-3.5 h-3.5 text-primary" />
+                <span>Avionics Standard Reference</span>
               </div>
             </div>
+          </aside>
+
+          {/* ── Column 2: Center Main Content (Article Header, Cover, Body, Tags) ── */}
+          <main className="lg:col-span-6 space-y-8">
+            {/* Post Header */}
+            <header className="space-y-4 pb-6 border-b border-border/80">
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <span className="px-3 py-1 rounded-full font-semibold bg-primary/10 text-primary border border-primary/20">
+                  {post.category}
+                </span>
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {formattedDate}
+                </span>
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5" />
+                  {post.readTimeMinutes} min read
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-[1.2]">
+                {post.title}
+              </h1>
+
+              {post.excerpt && (
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  {post.excerpt}
+                </p>
+              )}
+
+              {/* Cover Image */}
+              {post.coverImage && (
+                <div className="mt-4 rounded-xl overflow-hidden border border-border shadow-xs">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={post.coverImage}
+                    alt={post.title}
+                    className="w-full max-h-[420px] object-cover"
+                  />
+                </div>
+              )}
+            </header>
+
+            {/* Main Article Body */}
+            <div className="space-y-6">
+              <MarkdownRenderer content={post.content} />
+
+              {/* Post Tags */}
+              <div className="pt-6 mt-8 border-t border-border flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mr-2">
+                  <Tag className="w-3.5 h-3.5" /> Tags:
+                </span>
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2.5 py-1 rounded-md text-xs font-mono bg-secondary text-secondary-foreground border border-border"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </main>
+
+          {/* ── Column 3: Right Rail (Reactions, Likes & Discussion Comments) ── */}
+          <aside className="lg:col-span-3 sticky top-24 space-y-6">
+            <BlogInteractions slug={post.slug} title={post.title} />
           </aside>
         </div>
 
