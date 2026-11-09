@@ -11,6 +11,12 @@ importers:
       '@appwrite.io/pink-icons':
         specifier: ^1.0.0
         version: 1.0.0
+      '@aws-sdk/client-s3':
+        specifier: ^3.1164.0
+        version: 3.1164.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.1164.0
+        version: 3.1164.0
       '@base-ui/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -311,6 +317,10 @@ packages:
     resolution: {integrity: sha512-kqwNBIGNxGVhINwgN/UQfdsQkaMjbu9PFV2EhATWouV+RT60uMjK9JENgLDwbgJmEVbbnPsh9HaZ5KKwPSdiDg==}
     engines: {node: '>=20.0.0'}
 
+  '@aws-sdk/client-s3@3.1164.0':
+    resolution: {integrity: sha512-RCzGDlPFT0vH+rTIW+ukSsdeTC4RuFPDDvTracNW40CES6twgv7OXBXR1oVkhO3u7qY4UECbjF/kJmTSNx7eWQ==}
+    engines: {node: '>=20.0.0'}
+
   '@aws-sdk/client-s3@3.984.0':
     resolution: {integrity: sha512-7ny2Slr93Y+QniuluvcfWwyDi32zWQfznynL56Tk0vVh7bWrvS/odm8WP2nInKicRVNipcJHY2YInur6Q/9V0A==}
     engines: {node: '>=20.0.0'}
@@ -417,6 +427,10 @@ packages:
 
   '@aws-sdk/region-config-resolver@3.972.60':
     resolution: {integrity: sha512-LgLhH/vTP8GOc4I/rQL3gl6NugAG/gOZiVdEb/68PWmtKhbExYqjK0RIDnB66BJoM0wrVPCsrzR3hkVo4JyKJg==}
+    engines: {node: '>=20.0.0'}
+
+  '@aws-sdk/s3-request-presigner@3.1164.0':
+    resolution: {integrity: sha512-4zxMzbE9/NEHRLs3QMNaFryHwzYQHC8YzbOpF+JTvscJD+HXvh/7f8W6bDeTg5l5khAGziRTMY58S14Eb6oa/w==}
     engines: {node: '>=20.0.0'}
 
   '@aws-sdk/signature-v4-multi-region@3.984.0':
@@ -5862,6 +5876,20 @@ snapshots:
       '@smithy/util-waiter': 4.6.2
       tslib: 2.9.1
 
+  '@aws-sdk/client-s3@3.1164.0':
+    dependencies:
+      '@aws-sdk/checksums': 3.1002.3
+      '@aws-sdk/core': 3.980.1
+      '@aws-sdk/credential-provider-node': 3.972.94
+      '@aws-sdk/middleware-sdk-s3': 3.972.87
+      '@aws-sdk/signature-v4-multi-region': 3.996.51
+      '@aws-sdk/types': 3.975.0
+      '@smithy/core': 3.39.0
+      '@smithy/fetch-http-handler': 5.8.1
+      '@smithy/node-http-handler': 4.14.2
+      '@smithy/types': 4.20.0
+      tslib: 2.9.1
+
   '@aws-sdk/client-s3@3.984.0':
     dependencies:
       '@aws-crypto/sha1-browser': 5.2.0
@@ -6154,6 +6182,15 @@ snapshots:
   '@aws-sdk/region-config-resolver@3.972.60':
     dependencies:
       '@aws-sdk/core': 3.980.1
+      tslib: 2.9.1
+
+  '@aws-sdk/s3-request-presigner@3.1164.0':
+    dependencies:
+      '@aws-sdk/core': 3.980.1
+      '@aws-sdk/signature-v4-multi-region': 3.996.51
+      '@aws-sdk/types': 3.975.0
+      '@smithy/core': 3.39.0
+      '@smithy/types': 4.20.0
       tslib: 2.9.1
 
   '@aws-sdk/signature-v4-multi-region@3.984.0':

@@ -5,6 +5,8 @@ import { Query, ID } from "appwrite";
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_BLOG_DATABASE_ID;
 const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_BLOG_COLLECTION_ID;
+const COMMENTS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_COMMENTS_COLLECTION_ID || "comments";
+const REACTIONS_COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_REACTIONS_COLLECTION_ID || "reactions";
 
 /**
  * Normalizes an Appwrite document or JSON object into a typed BlogPost.
@@ -280,6 +282,37 @@ const REACTIONS_KEY_PREFIX = "aerosys_blog_reactions_";
 const COMMENTS_KEY_PREFIX = "aerosys_blog_comments_";
 
 export async function getBlogReactions(slug: string, userId?: string): Promise<BlogReaction> {
+  if (DATABASE_ID) {
+    try {
+      const res = await databases.listDocuments(DATABASE_ID, REACTIONS_COLLECTION_ID, [
+        Query.equal("postSlug", slug),
+        Query.limit(500),
+      ]);
+
+      let likes = 0;
+      let rockets = 0;
+      let hearts = 0;
+      let ideas = 0;
+      const userReactions: string[] = [];
+
+      for (const doc of res.documents) {
+        const type = String(doc.reactionType || "");
+        if (type === "like") likes++;
+        else if (type === "rocket") rockets++;
+        else if (type === "heart") hearts++;
+        else if (type === "idea") ideas++;
+
+        if (userId && doc.userId === userId && !userReactions.includes(type)) {
+          userReactions.push(type);
+        }
+      }
+
+      return { likes, rockets, hearts, ideas, userReactions };
+    } catch {
+      // Fallback to local storage if Appwrite collection is not yet created
+    }
+  }
+
   if (typeof window === "undefined") {
     return { likes: 12, rockets: 5, hearts: 8, ideas: 4, userReactions: [] };
   }
@@ -309,6 +342,35 @@ export async function toggleBlogReaction(
   reactionType: "like" | "rocket" | "heart" | "idea",
   userId: string
 ): Promise<BlogReaction> {
+  if (DATABASE_ID) {
+    try {
+      const existing = await databases.listDocuments(DATABASE_ID, REACTIONS_COLLECTION_ID, [
+        Query.equal("postSlug", slug),
+        Query.equal("userId", userId),
+        Query.equal("reactionType", reactionType),
+      ]);
+
+      if (existing.documents.length > 0) {
+        // Toggle off: remove reaction
+        for (const doc of existing.documents) {
+          await databases.deleteDocument(DATABASE_ID, REACTIONS_COLLECTION_ID, doc.$id);
+        }
+      } else {
+        // Toggle on: add reaction with userId tracking
+        await databases.createDocument(DATABASE_ID, REACTIONS_COLLECTION_ID, ID.unique(), {
+          postSlug: slug,
+          userId,
+          reactionType,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      return await getBlogReactions(slug, userId);
+    } catch {
+      // Fallback to local storage
+    }
+  }
+
   if (typeof window === "undefined") {
     return { likes: 12, rockets: 5, hearts: 8, ideas: 4, userReactions: [reactionType] };
   }
@@ -347,6 +409,30 @@ export async function toggleBlogReaction(
 }
 
 export async function getBlogComments(slug: string): Promise<BlogComment[]> {
+  if (DATABASE_ID) {
+    try {
+      const res = await databases.listDocuments(DATABASE_ID, COMMENTS_COLLECTION_ID, [
+        Query.equal("postSlug", slug),
+        Query.orderDesc("createdAt"),
+        Query.limit(100),
+      ]);
+
+      if (res.documents.length > 0) {
+        return res.documents.map((doc) => ({
+          id: doc.$id,
+          postSlug: getString(doc.postSlug, slug),
+          authorId: getString(doc.authorId, "anonymous"),
+          authorName: getString(doc.authorName, "Engineering Contributor"),
+          authorAvatar: getString(doc.authorAvatar, "/avatar.png"),
+          content: getString(doc.content, ""),
+          createdAt: getString(doc.createdAt, doc.$createdAt),
+        }));
+      }
+    } catch {
+      // Fallback to local storage
+    }
+  }
+
   if (typeof window === "undefined") return [];
 
   try {
@@ -391,6 +477,36 @@ export async function addBlogComment(
     content: commentData.content.trim(),
     createdAt: new Date().toISOString(),
   };
+
+  if (DATABASE_ID) {
+    try {
+      const doc = await databases.createDocument(
+        DATABASE_ID,
+        COMMENTS_COLLECTION_ID,
+        newComment.id,
+        {
+          postSlug: newComment.postSlug,
+          authorId: newComment.authorId,
+          authorName: newComment.authorName,
+          authorAvatar: newComment.authorAvatar,
+          content: newComment.content,
+          createdAt: newComment.createdAt,
+        }
+      );
+
+      return {
+        id: doc.$id,
+        postSlug: getString(doc.postSlug, slug),
+        authorId: getString(doc.authorId, commentData.authorId),
+        authorName: getString(doc.authorName, commentData.authorName),
+        authorAvatar: getString(doc.authorAvatar, "/avatar.png"),
+        content: getString(doc.content, commentData.content),
+        createdAt: getString(doc.createdAt, newComment.createdAt),
+      };
+    } catch {
+      // Fallback to local storage
+    }
+  }
 
   if (typeof window !== "undefined") {
     const existing = await getBlogComments(slug);

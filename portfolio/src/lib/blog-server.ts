@@ -224,7 +224,7 @@ export function getBlogCategories(posts: BlogPost[]): BlogCategory[] {
     }))
     .sort((a, b) => {
       // Prioritize primary technical categories
-      const priorityOrder = ["avionics", "systems", "automotive", "frontend", "classics", "about"];
+      const priorityOrder = ["avionics", "systems", "automotive"];
       const aIdx = priorityOrder.indexOf(a.slug);
       const bIdx = priorityOrder.indexOf(b.slug);
       if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;

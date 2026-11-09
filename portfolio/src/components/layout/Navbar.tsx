@@ -220,7 +220,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
 
   useEffect(() => {
     return () => cancelClose();
-  }, []);
+  }, [cancelClose]);
 
   // ── User dropdown: close on outside click, Escape, or when the mouse moves away ──
   const userMenuRef = useRef<HTMLDivElement>(null);
