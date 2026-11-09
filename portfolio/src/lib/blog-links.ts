@@ -58,12 +58,22 @@ export function normalizeBlogMarkdownForSite(
     const resolved = resolveWikilinkTarget(target, index);
 
     if (resolved) {
-      const text = label ?? resolved.title;
+      const text = (label ?? resolved.title).replace(/[[\]]/g, "");
       return `[${text}](${resolved.href})`;
     }
 
-    const fallbackText = label ?? target;
-    return `[${fallbackText}](/blog/${target})`;
+    const safeText = (label ?? target).replace(/[[\]]/g, "");
+    const safeTarget = target
+      .toLowerCase()
+      .replace(/[^a-z0-9-_/]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    if (!safeTarget) {
+      return safeText;
+    }
+
+    return `[${safeText}](/blog/${safeTarget})`;
   });
 
   for (let i = protectedSpans.length - 1; i >= 0; i -= 1) {

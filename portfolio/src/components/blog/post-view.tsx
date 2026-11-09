@@ -36,10 +36,38 @@ function flattenText(node: React.ReactNode): string {
   return "";
 }
 
-function stripScriptTags(value: string) {
+function sanitizeMarkdown(value: string): string {
   return value
+    // Strip script tags and their contents
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<script[^>]*\/>/gi, "");
+    .replace(/<script[^>]*\/>/gi, "")
+    // Strip dangerous active elements
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
+    .replace(/<embed\b[^>]*>/gi, "")
+    // Strip all inline event handlers (onerror, onload, onclick, etc.)
+    .replace(/\s+on[a-z]+\s*=\s*(['"]).*?\1/gi, "")
+    .replace(/\s+on[a-z]+\s*=\s*[^>\s]+/gi, "")
+    // Neutralize dangerous javascript: and vbscript: URIs
+    .replace(/(href|src)\s*=\s*(['"])\s*(?:javascript|vbscript):.*?\2/gi, '$1="#"');
+}
+
+function sanitizeHref(href: unknown): string {
+  if (typeof href !== "string") return "#";
+  const trimmed = href.trim();
+  if (/^(https?:\/\/|\/|#|mailto:)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return "#";
+}
+
+function sanitizeImgSrc(src: unknown): string {
+  if (typeof src !== "string") return "";
+  const trimmed = src.trim();
+  if (/^(https?:\/\/|\/|data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return "";
 }
 
 export function BlogPostView({
@@ -53,7 +81,7 @@ export function BlogPostView({
 }) {
   const { prev, next } = getAdjacentPosts(post.slug);
   const linkIndex = postsToLinkIndex(getAllPosts());
-  const safeMarkdown = stripScriptTags(
+  const safeMarkdown = sanitizeMarkdown(
     normalizeBlogMarkdownForSite(markdown, linkIndex),
   );
   const coverSrc = getPostCoverSrc(post);
@@ -98,7 +126,16 @@ export function BlogPostView({
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
-          disallowedElements={["script"]}
+          disallowedElements={[
+            "script",
+            "iframe",
+            "object",
+            "embed",
+            "form",
+            "input",
+            "button",
+            "style",
+          ]}
           unwrapDisallowed
           components={{
             h2: ({ children }) => {
@@ -185,12 +222,14 @@ export function BlogPostView({
             img: ({ src, alt }) => {
               const isIcon = alt?.startsWith("icon:") === true;
               const label = isIcon ? alt.slice(5) : alt;
+              const safeSrc = sanitizeImgSrc(src);
+              if (!safeSrc) return null;
 
               if (isIcon) {
                 return (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={src ?? ""}
+                    src={safeSrc}
                     alt={label ?? ""}
                     loading="lazy"
                     className="inline-block h-6 w-6 object-contain align-middle"
@@ -202,7 +241,7 @@ export function BlogPostView({
                 <div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-md my-6">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={src ?? ""}
+                    src={safeSrc}
                     alt={label ?? ""}
                     loading="lazy"
                     className="block h-auto w-full"
@@ -210,24 +249,30 @@ export function BlogPostView({
                 </div>
               );
             },
-            video: ({ src, children }) => (
-              <div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-md my-6">
-                <video
-                  controls
-                  preload="metadata"
-                  playsInline
-                  src={typeof src === "string" ? src : undefined}
-                  className="block h-auto w-full bg-black"
-                >
-                  {children}
-                </video>
-              </div>
-            ),
+            video: ({ src, children }) => {
+              const safeSrc = sanitizeHref(src);
+              if (safeSrc === "#") return null;
+
+              return (
+                <div className="w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-md my-6">
+                  <video
+                    controls
+                    preload="metadata"
+                    playsInline
+                    src={safeSrc}
+                    className="block h-auto w-full bg-black"
+                  >
+                    {children}
+                  </video>
+                </div>
+              );
+            },
             script: () => null,
             a: ({ href, children }) => {
+              const safeHref = sanitizeHref(href);
               const isVideoLink =
-                typeof href === "string" &&
-                /\.(mp4|webm|ogg)(\?.*)?$/i.test(href);
+                safeHref !== "#" &&
+                /\.(mp4|webm|ogg)(\?.*)?$/i.test(safeHref);
 
               if (isVideoLink) {
                 return (
@@ -236,18 +281,20 @@ export function BlogPostView({
                       controls
                       preload="metadata"
                       playsInline
-                      src={href}
+                      src={safeHref}
                       className="block h-auto w-full bg-black"
                     />
                   </div>
                 );
               }
 
+              const isExternal = safeHref.startsWith("http");
+
               return (
                 <a
-                  href={href}
-                  target={href?.startsWith("http") ? "_blank" : undefined}
-                  rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+                  href={safeHref}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
                   className="text-primary underline underline-offset-4 hover:opacity-80 transition-opacity"
                 >
                   {children}

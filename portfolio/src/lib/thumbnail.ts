@@ -1,20 +1,51 @@
-export function resolveThumbnailSrc(thumbnail: string) {
-  if (/^https?:\/\//i.test(thumbnail)) {
-    return thumbnail;
+const ALLOWED_THUMBNAIL_DOMAINS = [
+  "cloud.appwrite.io",
+  "appwrite.io",
+  "images.unsplash.com",
+  "avatars.githubusercontent.com",
+  "raw.githubusercontent.com",
+];
+
+function isAllowedExternalUrl(urlString: string): boolean {
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol !== "https:") return false;
+    return ALLOWED_THUMBNAIL_DOMAINS.some(
+      (domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function resolveThumbnailSrc(thumbnail: string): string | undefined {
+  if (!thumbnail || typeof thumbnail !== "string") return undefined;
+  const trimmed = thumbnail.trim();
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return isAllowedExternalUrl(trimmed) ? trimmed : undefined;
   }
 
-  return thumbnail.startsWith("/") ? thumbnail : `/${thumbnail}`;
+  // Reject traversal or script injections in relative paths
+  if (trimmed.includes("..") || trimmed.includes(":") || trimmed.includes("//")) {
+    return undefined;
+  }
+
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 }
 
 export function resolveThumbnailUrl(
   thumbnail: string,
   toAbsolute: (path: string) => string,
-) {
-  if (/^https?:\/\//i.test(thumbnail)) {
-    return thumbnail;
+): string | undefined {
+  const resolved = resolveThumbnailSrc(thumbnail);
+  if (!resolved) return undefined;
+
+  if (/^https:\/\//i.test(resolved)) {
+    return resolved;
   }
 
-  return toAbsolute(resolveThumbnailSrc(thumbnail));
+  return toAbsolute(resolved);
 }
 
 export function getPostThumbnail(post: {
@@ -36,4 +67,5 @@ export function getPostCoverSrc(post: {
   if (custom) return resolveThumbnailSrc(custom);
   return undefined;
 }
+
 

@@ -1,2 +1,12 @@
+packages:
+  - .
+
+overrides:
+  js-yaml: ^4.1.0
+
+allowBuilds:
+  esbuild: false
+  workerd: false
+
 minimumReleaseAgeExclude:
   - appwrite@29.1.0

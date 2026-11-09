@@ -25,6 +25,18 @@ interface PostPageProps {
   }>;
 }
 
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-_]*$/i;
+
+function isValidSingleSlug(slug: unknown): slug is string {
+  return (
+    typeof slug === "string" &&
+    slug.length > 0 &&
+    slug.length <= 150 &&
+    !slug.includes("..") &&
+    SLUG_PATTERN.test(slug)
+  );
+}
+
 export async function generateStaticParams() {
   const slugs = await getAllBlogSlugs();
   return slugs.map((slug) => ({ slug }));
@@ -32,6 +44,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (!isValidSingleSlug(slug)) {
+    return {
+      title: "Article Not Found | AeroSys Engineering Hub",
+      description: "The requested engineering article could not be located.",
+    };
+  }
+
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {
@@ -57,6 +76,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function BlogPostPage({ params }: PostPageProps) {
   const { slug } = await params;
+  if (!isValidSingleSlug(slug)) {
+    notFound();
+  }
+
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {

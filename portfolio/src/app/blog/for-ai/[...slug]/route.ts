@@ -1,5 +1,25 @@
 import { getPostBySegments } from "@/lib/blog-server";
 
+const SEGMENT_PATTERN = /^[a-z0-9][a-z0-9-_]*$/i;
+const MAX_SEGMENTS = 5;
+const MAX_SEGMENT_LENGTH = 100;
+
+function isValidSlug(slug: unknown): slug is string[] {
+  if (!Array.isArray(slug) || slug.length === 0 || slug.length > MAX_SEGMENTS) {
+    return false;
+  }
+  return slug.every(
+    (segment) =>
+      typeof segment === "string" &&
+      segment.length > 0 &&
+      segment.length <= MAX_SEGMENT_LENGTH &&
+      !segment.includes("..") &&
+      !segment.includes("/") &&
+      !segment.includes("\\") &&
+      SEGMENT_PATTERN.test(segment)
+  );
+}
+
 function buildPostMarkdown(slug: string[]) {
   const post = getPostBySegments(slug);
   if (!post) return null;
@@ -30,6 +50,17 @@ export async function GET(
   context: { params: Promise<{ slug: string[] }> },
 ) {
   const { slug } = await context.params;
+
+  if (!isValidSlug(slug)) {
+    return new Response("Bad Request: Invalid slug parameters", {
+      status: 400,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "x-robots-tag": "noindex, nofollow",
+      },
+    });
+  }
+
   const markdown = buildPostMarkdown(slug);
 
   if (!markdown) {
@@ -37,6 +68,7 @@ export async function GET(
       status: 404,
       headers: {
         "content-type": "text/plain; charset=utf-8",
+        "x-robots-tag": "noindex, nofollow",
       },
     });
   }
@@ -45,7 +77,9 @@ export async function GET(
     headers: {
       "content-type": "text/markdown; charset=utf-8",
       "cache-control": "public, max-age=3600",
+      "x-robots-tag": "noindex, nofollow",
     },
   });
 }
+
 

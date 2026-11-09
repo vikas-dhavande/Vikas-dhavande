@@ -12,6 +12,20 @@ type PageProps = {
   params: Promise<{ slug: string[] }>;
 };
 
+const SEGMENT_PATTERN = /^[a-z0-9][a-z0-9-_]*$/i;
+
+function isValidSegments(slug: unknown): slug is string[] {
+  if (!Array.isArray(slug) || slug.length === 0 || slug.length > 5) return false;
+  return slug.every(
+    (seg) =>
+      typeof seg === "string" &&
+      seg.length > 0 &&
+      seg.length <= 100 &&
+      !seg.includes("..") &&
+      SEGMENT_PATTERN.test(seg)
+  );
+}
+
 export function generateStaticParams() {
   const posts = getAllPosts();
   const params: { slug: string[] }[] = [];
@@ -34,6 +48,13 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (!isValidSegments(slug)) {
+    return {
+      title: "Article Not Found | AeroSys Engineering Hub",
+      description: "The requested engineering article could not be located.",
+    };
+  }
+
   const post = getPostBySegments(slug);
   if (!post) {
     return {
@@ -62,6 +83,8 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
+  if (!isValidSegments(slug)) notFound();
+
   const post = getPostBySegments(slug);
   if (!post) notFound();
 

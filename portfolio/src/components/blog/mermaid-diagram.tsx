@@ -7,11 +7,26 @@ type MermaidDiagramProps = {
   chart: string;
 };
 
-function sanitizeSvg(svg: string) {
-  return svg
+function sanitizeSvg(svg: string): string {
+  // Strip dangerous elements completely
+  let clean = svg
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "");
+    .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, "")
+    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<object[\s\S]*?>[\s\S]*?<\/object>/gi, "")
+    .replace(/<embed[\s\S]*?>[\s\S]*?<\/embed>/gi, "");
+
+  // Remove all inline event handlers (e.g. onload, onerror, onclick)
+  clean = clean.replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi, "");
+  clean = clean.replace(/\son[a-z]+\s*=\s*[^>\s]+/gi, "");
+
+  // Remove javascript: and vbscript: URIs from href / xlink:href
+  clean = clean.replace(
+    /\b(href|xlink:href)\s*=\s*(['"])\s*(?:javascript|vbscript):.*?\2/gi,
+    '$1=""',
+  );
+
+  return clean;
 }
 
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
@@ -29,7 +44,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         const mermaid = (await import("mermaid")).default;
 
         mermaid.initialize({
-          securityLevel: "loose",
+          securityLevel: "strict",
           startOnLoad: false,
           theme: "base",
           darkMode: isDark,

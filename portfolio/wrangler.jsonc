@@ -1,0 +1,34 @@
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "vikas-dhavande",
+  "compatibility_date": "2026-11-08",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      // Self-reference service binding
+      // The service name must match the Worker name
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "vikas-dhavande"
+    }
+  ],
+  "r2_buckets": [
+    {
+      // R2 incremental cache
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "portfolio-opennext-cache"
+    }
+  ],
+  "images": {
+    // Cloudflare image optimization
+    "binding": "IMAGES"
+  }
+}

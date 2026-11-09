@@ -139,22 +139,31 @@ function renderInlineFormatting(text: string): React.ReactNode {
   });
 }
 
+function sanitizeTiptapHtml(html: string): string {
+  return html
+    // Strip script tags and active elements
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<script[^>]*\/>/gi, "")
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
+    .replace(/<embed\b[^>]*>/gi, "")
+    // Strip all inline event handlers
+    .replace(/\s+on[a-z]+\s*=\s*(['"]).*?\1/gi, "")
+    .replace(/\s+on[a-z]+\s*=\s*[^>\s]+/gi, "")
+    // Neutralize dangerous protocols
+    .replace(/(href|src)\s*=\s*(['"])\s*(?:javascript|vbscript):.*?\2/gi, '$1="#"');
+}
+
 /**
- * Renders Tiptap-generated HTML content.
- *
- * Content is TRUSTED because it is authored exclusively by authenticated admins
- * through the guarded Tiptap editor. No DOMPurify is needed here — the editor
- * already enforces a restricted tag/attribute set via its schema, and only
- * users who pass AdminGate can reach the editor.
- *
- * The isSafeUrl() helper below still protects the markdown parser path against
- * javascript: URI injection for any legacy markdown content.
+ * Renders Tiptap-generated HTML content with strict sanitization
+ * to prevent stored XSS even if database content is tampered with.
  */
 function TiptapHtmlRenderer({ html }: { html: string }) {
+  const cleanHtml = sanitizeTiptapHtml(html);
   return (
     <div
       className="blog-prose space-y-4 text-sm sm:text-base leading-relaxed text-foreground"
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: cleanHtml }}
     />
   );
 }
