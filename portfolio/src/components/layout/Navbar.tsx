@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from "react";
+import React, { useState, useEffect, useRef, useTransition, useCallback } from "react";
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
 import { account } from "@/lib/appwrite";
@@ -196,12 +196,12 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
   // ── Hover intent: small delay before closing so diagonal mouse moves don't kill the menu ──
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const cancelClose = () => {
+  const cancelClose = useCallback(() => {
     if (closeTimer.current) {
       clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
-  };
+  }, []);
 
   const openNow = (id: string) => {
     cancelClose();
@@ -213,10 +213,10 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
     closeTimer.current = setTimeout(() => setOpenMenu(null), 150);
   };
 
-  const closeNow = () => {
+  const closeNow = useCallback(() => {
     cancelClose();
     setOpenMenu(null);
-  };
+  }, [cancelClose]);
 
   useEffect(() => {
     return () => cancelClose();
@@ -287,6 +287,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mobileMenuOpen, openMenu]);
 
   const handleRefresh = async () => {
