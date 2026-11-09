@@ -22,7 +22,16 @@ import { pipeline } from "node:stream/promises";
 
 // Load environment from .env or .env.local if present
 function loadEnv() {
-  const envFiles = [".env.local", ".env", "../.env.local", "../.env"];
+  const envFiles = [
+    "portfolio/.env.local",
+    "portfolio/.env",
+    ".env.local",
+    ".env",
+    "../portfolio/.env.local",
+    "../portfolio/.env",
+    "../.env.local",
+    "../.env",
+  ];
   for (const file of envFiles) {
     const fullPath = path.resolve(process.cwd(), file);
     if (fs.existsSync(fullPath)) {
