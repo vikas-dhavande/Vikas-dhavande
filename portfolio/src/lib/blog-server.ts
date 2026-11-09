@@ -3,6 +3,7 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import yaml from "js-yaml";
 import type {
   BlogCategory,
   BlogLink,
@@ -136,7 +137,11 @@ export function getAllPosts(): BlogPost[] {
       const category = titleCase(segments[0] ?? "General");
 
       const source = fs.readFileSync(absPath, "utf8");
-      const parsed = matter(source);
+      const parsed = matter(source, {
+        engines: {
+          yaml: (str: string) => yaml.load(str) as Record<string, unknown>,
+        },
+      });
       const data = parsed.data as Frontmatter;
       const markdown = parsed.content.trim();
       const headings = getMarkdownHeadings(markdown);
