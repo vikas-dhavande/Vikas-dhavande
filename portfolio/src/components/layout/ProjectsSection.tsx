@@ -278,14 +278,6 @@ export function ProjectsSection({
           )}
         >
           <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]" />
-
-              <span className="text-xs font-medium tracking-wide text-muted-foreground">
-                SELECTED WORK
-              </span>
-            </div>
-
             <h2
               className={cn(
                 "font-bold tracking-tight text-foreground",

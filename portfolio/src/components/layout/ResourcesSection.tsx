@@ -16,7 +16,6 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 
 import { ResourceItem } from "@/lib/portfolio-types";
@@ -303,14 +302,6 @@ export function ResourcesSection({
           )}
         >
           <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" />
-
-              <span className="text-xs font-medium tracking-wide text-muted-foreground">
-                DEVELOPER KNOWLEDGE
-              </span>
-            </div>
-
             <h2
               className={cn(
                 "font-bold tracking-tight text-foreground",

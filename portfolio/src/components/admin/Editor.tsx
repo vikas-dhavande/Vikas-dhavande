@@ -1,334 +1,298 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import LinkExtension from "@tiptap/extension-link";
-import ImageExtension from "@tiptap/extension-image";
-import TextAlign from "@tiptap/extension-text-align";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
-import Highlight from "@tiptap/extension-highlight";
-import Placeholder from "@tiptap/extension-placeholder";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   Bold,
   Italic,
-  Underline as UnderlineIcon,
-  Strikethrough,
   Code,
-  Heading1,
   Heading2,
   Heading3,
   List,
-  ListOrdered,
   Quote,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
   Link as LinkIcon,
   Image as ImageIcon,
-  Minus,
-  Undo,
-  Redo,
   Loader2,
+  Eye,
+  Edit3,
+  Columns,
+  Workflow,
 } from "lucide-react";
 import { uploadBlogImage } from "@/lib/appwrite";
-import "./editor.css";
+import { MermaidDiagram } from "@/components/blog/mermaid-diagram";
 
 interface EditorProps {
   content: string;
-  onChange: (html: string) => void;
+  onChange: (markdown: string) => void;
   placeholder?: string;
 }
 
 export function Editor({
   content,
   onChange,
-  placeholder = "Write your engineering article content here...",
+  placeholder = "Write your engineering article markdown here...",
 }: EditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [viewMode, setViewMode] = useState<"edit" | "split" | "preview">("split");
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      Underline,
-      LinkExtension.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-primary underline font-medium",
-        },
-      }),
-      ImageExtension.configure({
-        allowBase64: true,
-        HTMLAttributes: {
-          class: "rounded-lg max-w-full my-4 border border-border shadow-xs",
-        },
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      Placeholder.configure({
-        placeholder,
-      }),
-    ],
-    content,
-    immediatelyRender: false,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-  });
+  const insertText = (prefix: string, suffix = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-  if (!editor) {
-    return (
-      <div className="min-h-[300px] flex items-center justify-center border border-border rounded-xl bg-card">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = content.slice(start, end);
 
-  const setLink = () => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Enter URL:", previousUrl);
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    const replacement = `${prefix}${selected || "text"}${suffix}`;
+    const nextContent =
+      content.slice(0, start) + replacement + content.slice(end);
+
+    onChange(nextContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + prefix.length,
+        start + prefix.length + (selected ? selected.length : 4),
+      );
+    }, 10);
   };
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingImage(true);
     try {
       const url = await uploadBlogImage(file);
-      editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+      insertText(`\n![${file.name}](${url})\n`);
     } catch (err: unknown) {
-      alert(`Image upload failed: ${err instanceof Error ? err.message : "Please check storage permissions."}`);
+      console.error("Upload failed:", err);
+      alert("Image upload failed. Please verify Appwrite configuration.");
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const buttonClass = (isActive: boolean) =>
-    `p-1.5 rounded-md text-xs font-medium transition-colors ${
-      isActive
-        ? "bg-primary text-primary-foreground"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-    }`;
-
   return (
-    <div className="tiptap-editor border border-border rounded-xl overflow-hidden bg-card shadow-xs">
-      {/* Hidden file input for inline image upload */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageFileChange}
-      />
+    <div className="flex flex-col rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      {/* ── Toolbar ── */}
+      <div className="flex flex-wrap items-center justify-between gap-1 border-b border-border bg-muted/40 p-2 text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            onClick={() => insertText("## ")}
+            title="Heading 2"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Heading2 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => insertText("### ")}
+            title="Heading 3"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Heading3 className="w-4 h-4" />
+          </button>
+          <span className="w-px h-4 bg-border mx-1" />
+          <button
+            type="button"
+            onClick={() => insertText("**", "**")}
+            title="Bold"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Bold className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => insertText("*", "*")}
+            title="Italic"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Italic className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => insertText("`", "`")}
+            title="Inline Code"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Code className="w-4 h-4" />
+          </button>
+          <span className="w-px h-4 bg-border mx-1" />
+          <button
+            type="button"
+            onClick={() => insertText("- ")}
+            title="Bullet List"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <List className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => insertText("> ")}
+            title="Quote"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Quote className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => insertText("[", "](https://example.com)")}
+            title="Link"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+          >
+            <LinkIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              insertText(
+                "\n```mermaid\ngraph TD\n    A[Input] --> B[Controller]\n    B --> C[Actuator]\n```\n",
+              )
+            }
+            title="Insert Mermaid Diagram"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer inline-flex items-center gap-1 text-xs"
+          >
+            <Workflow className="w-4 h-4" />
+            <span className="hidden sm:inline">Mermaid</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingImage}
+            title="Upload Image to Appwrite Storage"
+            className="p-1.5 rounded-lg hover:bg-secondary hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {uploadingImage ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            ) : (
+              <ImageIcon className="w-4 h-4" />
+            )}
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+        </div>
 
-      {/* Formatting Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-muted/40 backdrop-blur-xs">
-        {/* History */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          className="p-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted disabled:opacity-30"
-          title="Undo"
-        >
-          <Undo className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          className="p-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted disabled:opacity-30"
-          title="Redo"
-        >
-          <Redo className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 bg-border mx-1" />
-
-        {/* Headings */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={buttonClass(editor.isActive("heading", { level: 1 }))}
-          title="Heading 1"
-        >
-          <Heading1 className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={buttonClass(editor.isActive("heading", { level: 2 }))}
-          title="Heading 2"
-        >
-          <Heading2 className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={buttonClass(editor.isActive("heading", { level: 3 }))}
-          title="Heading 3"
-        >
-          <Heading3 className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 bg-border mx-1" />
-
-        {/* Inline styles */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={buttonClass(editor.isActive("bold"))}
-          title="Bold"
-        >
-          <Bold className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={buttonClass(editor.isActive("italic"))}
-          title="Italic"
-        >
-          <Italic className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={buttonClass(editor.isActive("underline"))}
-          title="Underline"
-        >
-          <UnderlineIcon className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={buttonClass(editor.isActive("strike"))}
-          title="Strikethrough"
-        >
-          <Strikethrough className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          className={buttonClass(editor.isActive("code"))}
-          title="Inline Code"
-        >
-          <Code className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 bg-border mx-1" />
-
-        {/* Alignment */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          className={buttonClass(editor.isActive({ textAlign: "left" }))}
-          title="Align Left"
-        >
-          <AlignLeft className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className={buttonClass(editor.isActive({ textAlign: "center" }))}
-          title="Align Center"
-        >
-          <AlignCenter className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          className={buttonClass(editor.isActive({ textAlign: "right" }))}
-          title="Align Right"
-        >
-          <AlignRight className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 bg-border mx-1" />
-
-        {/* Lists & Quotes */}
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={buttonClass(editor.isActive("bulletList"))}
-          title="Bullet List"
-        >
-          <List className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={buttonClass(editor.isActive("orderedList"))}
-          title="Numbered List"
-        >
-          <ListOrdered className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={buttonClass(editor.isActive("blockquote"))}
-          title="Blockquote"
-        >
-          <Quote className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          className="p-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted"
-          title="Horizontal Rule"
-        >
-          <Minus className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-4 bg-border mx-1" />
-
-        {/* Link & Image */}
-        <button
-          type="button"
-          onClick={setLink}
-          className={buttonClass(editor.isActive("link"))}
-          title="Insert Link"
-        >
-          <LinkIcon className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadingImage}
-          className="p-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 disabled:opacity-50"
-          title="Upload & Insert Image"
-        >
-          {uploadingImage ? (
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
-          ) : (
-            <ImageIcon className="w-4 h-4" />
-          )}
-        </button>
+        {/* View mode toggle */}
+        <div className="flex items-center gap-1 bg-background/80 rounded-lg p-0.5 border border-border">
+          <button
+            type="button"
+            onClick={() => setViewMode("edit")}
+            className={`p-1.5 rounded-md text-xs font-medium transition-colors ${
+              viewMode === "edit"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Code editor only"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("split")}
+            className={`hidden md:block p-1.5 rounded-md text-xs font-medium transition-colors ${
+              viewMode === "split"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Split pane: Edit & Live Preview"
+          >
+            <Columns className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("preview")}
+            className={`p-1.5 rounded-md text-xs font-medium transition-colors ${
+              viewMode === "preview"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Full preview"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Editor Content Area */}
-      <EditorContent editor={editor} />
+      {/* ── Editor Body ── */}
+      <div
+        className={`grid min-h-[420px] ${
+          viewMode === "split"
+            ? "grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border"
+            : "grid-cols-1"
+        }`}
+      >
+        {/* Input Textarea */}
+        {viewMode !== "preview" && (
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className="w-full h-full min-h-[420px] p-4 bg-transparent font-mono text-sm leading-relaxed text-foreground resize-y outline-none placeholder:text-muted-foreground"
+          />
+        )}
+
+        {/* Live Preview */}
+        {viewMode !== "edit" && (
+          <div className="p-5 max-h-[600px] overflow-y-auto space-y-4 bg-background/50">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/50 pb-1 mb-3">
+              Live Vengeance Preview
+            </div>
+            <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed text-foreground space-y-4">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+                components={{
+                  h2: ({ children }) => (
+                    <h2 className="text-xl font-bold tracking-tight text-foreground border-b border-border/60 pb-1 mt-6 mb-2">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-lg font-semibold tracking-tight text-foreground mt-4 mb-2">
+                      {children}
+                    </h3>
+                  ),
+                  code: ({ className, children }) => {
+                    const language = className?.replace("language-", "");
+                    const text = String(children).replace(/\n$/, "");
+                    if (language === "mermaid") {
+                      return <MermaidDiagram chart={text} />;
+                    }
+                    if (!className) {
+                      return (
+                        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-primary border border-border/60">
+                          {children}
+                        </code>
+                      );
+                    }
+                    return (
+                      <pre className="rounded-lg bg-zinc-950 p-3 font-mono text-xs text-zinc-100 overflow-x-auto my-3">
+                        <code>{text}</code>
+                      </pre>
+                    );
+                  },
+                }}
+              >
+                {content || "*Nothing to preview yet. Start typing markdown...*"}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

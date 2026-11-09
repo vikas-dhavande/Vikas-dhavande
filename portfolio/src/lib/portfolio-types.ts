@@ -22,6 +22,20 @@ export interface EducationItem {
   details?: string;
 }
 
+export interface CertificateItem {
+  id: string;
+  title: string;
+  issuer: string;
+  period: string;
+  category?: string;
+  type?: "Certification" | "License" | "Accreditation";
+  credentialId?: string;
+  verificationUrl?: string;
+  details?: string;
+  skills?: string[];
+  isCurrent?: boolean;
+}
+
 export interface SkillItem {
   name: string;
   level?: string;
@@ -77,6 +91,7 @@ export interface PortfolioData {
   location: string;
   experiences: ExperienceItem[];
   education: EducationItem[];
+  certificates?: CertificateItem[];
   skillCategories: SkillCategory[];
   projects: ProjectItem[];
   resources: ResourceItem[];

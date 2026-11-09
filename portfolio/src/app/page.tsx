@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/layout/HeroSection";
 import { LogoCloud } from "@/components/shadcn-space/blocks/logo-cloud-01/logo-cloud";
 import { ExperienceSection } from "@/components/layout/ExperienceSection";
 import { EducationSection } from "@/components/layout/EducationSection";
+import { CertificatesSection } from "@/components/layout/CertificatesSection";
 import { SkillsSection } from "@/components/layout/SkillsSection";
 import { ProjectsSection } from "@/components/layout/ProjectsSection";
 import { ResourcesSection } from "@/components/layout/ResourcesSection";
@@ -26,6 +27,7 @@ export default async function HomePage() {
         <LogoCloud />
         <ExperienceSection experiences={portfolioData.experiences} />
         <EducationSection education={portfolioData.education} />
+        <CertificatesSection certificates={portfolioData.certificates} />
         <SkillsSection categories={portfolioData.skillCategories} />
         <ProjectsSection projects={portfolioData.projects} />
         <ResourcesSection resources={portfolioData.resources} />

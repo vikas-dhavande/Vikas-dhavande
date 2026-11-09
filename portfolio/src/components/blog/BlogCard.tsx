@@ -11,11 +11,20 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ post, featured = false }: BlogCardProps) {
-  const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
+  const rawDate = post.publishedAt || post.date || new Date().toISOString();
+  const formattedDate = new Date(rawDate).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+
+  const authorName =
+    typeof post.author === "string" ? post.author : post.author?.name || "Vikas N Dhavande";
+  const authorRole =
+    typeof post.author === "object" ? post.author?.role || "Lead Avionics Engineer" : "Lead Avionics Engineer";
+
+  const targetHref = post.href || `/blog/${post.slug}`;
+  const readTime = post.readingTime || `${post.readTimeMinutes || 5} min`;
 
   if (featured) {
     return (
@@ -33,35 +42,35 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
               </span>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" />
-                {post.readTimeMinutes} min read
+                {readTime}
               </span>
             </div>
 
-            <Link href={`/blog/${post.slug}`} className="block group-hover:text-primary transition-colors">
+            <Link href={targetHref} className="block group-hover:text-primary transition-colors">
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">
                 {post.title}
               </h2>
             </Link>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-3">
-              {post.excerpt}
+              {post.description || post.excerpt}
             </p>
 
             <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#FF6D1B] to-[#6B5FFF] p-0.5 shadow-xs">
                   <div className="h-full w-full rounded-full bg-card flex items-center justify-center font-bold text-xs text-foreground">
-                    {post.author.name.charAt(0)}
+                    {authorName.charAt(0)}
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-foreground">{post.author.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{post.author.role}</p>
+                  <p className="text-xs font-semibold text-foreground">{authorName}</p>
+                  <p className="text-[10px] text-muted-foreground">{authorRole}</p>
                 </div>
               </div>
 
               <Link
-                href={`/blog/${post.slug}`}
+                href={targetHref}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline group/btn"
               >
                 Read Article
@@ -83,25 +92,25 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
           </span>
           <span className="flex items-center gap-1 text-muted-foreground text-[11px]">
             <Clock className="w-3 h-3" />
-            {post.readTimeMinutes}m
+            {readTime}
           </span>
         </div>
 
-        <Link href={`/blog/${post.slug}`} className="block">
+        <Link href={targetHref} className="block">
           <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h3>
         </Link>
 
         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-          {post.excerpt}
+          {post.description || post.excerpt}
         </p>
       </div>
 
       <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between text-xs">
         <span className="text-muted-foreground text-[11px]">{formattedDate}</span>
         <Link
-          href={`/blog/${post.slug}`}
+          href={targetHref}
           className="inline-flex items-center gap-1 font-semibold text-foreground group-hover:text-primary transition-colors"
         >
           Read <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

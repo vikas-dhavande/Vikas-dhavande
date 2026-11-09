@@ -272,14 +272,6 @@ export function SkillsSection({
           )}
         >
           <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />
-
-              <span className="text-xs font-medium tracking-wide text-muted-foreground">
-                TECHNICAL COMPETENCIES
-              </span>
-            </div>
-
             <h2
               className={cn(
                 "font-bold tracking-tight text-foreground",

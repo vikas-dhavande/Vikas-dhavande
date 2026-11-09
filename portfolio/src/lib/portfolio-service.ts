@@ -28,6 +28,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
           location: configDoc.location || defaultData.location,
           experiences: configDoc.experiences || defaultData.experiences,
           education: configDoc.education || defaultData.education,
+          certificates: configDoc.certificates || defaultData.certificates,
           skillCategories: configDoc.skillCategories || defaultData.skillCategories,
           projects: configDoc.projects || defaultData.projects,
           resources: configDoc.resources || defaultData.resources,

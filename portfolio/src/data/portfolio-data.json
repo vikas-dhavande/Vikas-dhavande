@@ -123,6 +123,71 @@
       "details": "Hands-on electrical wiring, industrial maintenance, power distribution, and equipment troubleshooting."
     }
   ],
+  "certificates": [
+    {
+      "id": "cert-ipc-a-610",
+      "title": "IPC-A-610 Certified IPC Specialist (CIS)",
+      "issuer": "IPC — Association Connecting Electronics Industries",
+      "period": "September 2023 — Present",
+      "category": "Industrial Standards",
+      "type": "Certification",
+      "credentialId": "CIS-610-2023-9821",
+      "verificationUrl": "https://www.ipc.org/ipc-certifications",
+      "details": "Certified in IPC-A-610 (Acceptability of Electronic Assemblies) standards, covering rigorous inspection criteria for solder joints, surface mount technology (SMT), component placement, and Class 3 high-reliability aerospace/automotive assemblies.",
+      "skills": ["IPC-A-610", "SMT Inspection", "Quality Assurance", "Soldering Workmanship", "Class 3 High Reliability"],
+      "isCurrent": true
+    },
+    {
+      "id": "cert-labview-clad",
+      "title": "Certified LabVIEW Associate Developer (CLAD)",
+      "issuer": "National Instruments (NI)",
+      "period": "March 2024 — Present",
+      "category": "Embedded Systems",
+      "type": "Certification",
+      "credentialId": "NI-CLAD-2024-5519",
+      "verificationUrl": "https://www.ni.com/en/support/training-and-certification.html",
+      "details": "Demonstrated core competency in developing, debugging, and maintaining automated measurement systems, data acquisition (DAQ) architectures, and Hardware-in-the-Loop (HIL) test suites using National Instruments LabVIEW.",
+      "skills": ["NI LabVIEW", "HIL Test Automation", "DAQ Architecture", "Automated Instrumentation", "TestStand"],
+      "isCurrent": true
+    },
+    {
+      "id": "cert-electrical-license",
+      "title": "Electrical Supervisor & Wireman Competency License",
+      "issuer": "Electrical Inspectorate & Licensing Board, Govt. of Karnataka",
+      "period": "August 2021 — Active",
+      "category": "Electrical & Safety",
+      "type": "License",
+      "credentialId": "KA-ELB-LIC-77402",
+      "details": "Government-authorized statutory competency license authorizing supervisory inspection and execution of industrial electrical installations, HV/LV switchgear maintenance, transformer substations, and plant safety compliance.",
+      "skills": ["Industrial Wiring", "HV/LV Switchgear", "Electrical Safety Standards", "Substation Maintenance", "Power Distribution"],
+      "isCurrent": true
+    },
+    {
+      "id": "cert-automotive-can",
+      "title": "Automotive In-Vehicle Networks (CAN/CAN-FD) & Diagnostics",
+      "issuer": "Vector Informatik / Bosch Technical Training",
+      "period": "November 2023 — Present",
+      "category": "Automotive & Quality",
+      "type": "Certification",
+      "credentialId": "VEC-CAN-AUT-8831",
+      "verificationUrl": "https://www.vector.com",
+      "details": "Specialized qualification in Controller Area Network (CAN / CAN-FD) architecture, UDS protocol diagnostics, DBC signal mapping, and automated ECU validation workflows for automotive body control units and DC-DC power converters.",
+      "skills": ["CAN / CAN-FD", "UDS Diagnostics", "Vector CANoe", "Automotive ECUs", "DBC Mapping"],
+      "isCurrent": true
+    },
+    {
+      "id": "cert-do254-aerospace",
+      "title": "DO-254 / DO-178C Airborne Electronic Hardware & Safety Assurance",
+      "issuer": "Aerospace Systems Qualification & Training Institute",
+      "period": "January 2025 — Present",
+      "category": "Avionics & Aerospace",
+      "type": "Certification",
+      "credentialId": "ASQ-DO254-2025-102",
+      "details": "Comprehensive qualification in RTCA DO-254 (Design Assurance Guidance for Airborne Electronic Hardware) and DO-178C fundamentals, focusing on mission-critical flight avionics safety lifecycles, hardware verification matrices, and traceability.",
+      "skills": ["DO-254", "DO-178C", "Airborne Hardware Assurance", "Avionics Safety", "Traceability Matrices"],
+      "isCurrent": true
+    }
+  ],
   "skillCategories": [
     {
       "id": "skills-embedded",

@@ -42,19 +42,33 @@ function normalizePost(doc: Record<string, unknown>): BlogPost {
     ? tagsValue.filter((tag): tag is string => typeof tag === "string")
     : ["Avionics", "Engineering"];
 
+  const slug = getString(doc.slug, "untitled-article");
+  const category = getString(doc.category, "Engineering");
+  const readTimeMinutes = Number(doc.readTimeMinutes) || 5;
+  const content = getString(doc.content, "");
+  const excerpt = getString(doc.excerpt, "");
+  const publishedAt = getString(doc.publishedAt, getString(doc.$createdAt, new Date().toISOString()));
+
   return {
     $id: getString(doc.$id, "") || getString(doc.id, "") || ID.unique(),
     title: getString(doc.title, "Untitled Article"),
-    slug: getString(doc.slug, "untitled-article"),
-    excerpt: getString(doc.excerpt, ""),
-    content: getString(doc.content, ""),
-    category: getString(doc.category, "Engineering"),
-    publishedAt: getString(doc.publishedAt, getString(doc.$createdAt, new Date().toISOString())),
-    readTimeMinutes: Number(doc.readTimeMinutes) || 5,
+    slug,
+    segments: [category.toLowerCase(), slug],
+    href: `/blog/${slug}`,
+    description: excerpt || getString(doc.title, "Untitled Article"),
+    excerpt,
+    content,
+    markdown: content,
+    category,
+    date: publishedAt,
+    publishedAt,
+    readingTime: `${readTimeMinutes} min`,
+    readTimeMinutes,
     featured: Boolean(doc.featured),
     status: (doc.status as "published" | "draft") || "published",
     coverImage: typeof doc.coverImage === "string" ? doc.coverImage : undefined,
     tags,
+    headings: [],
     author: {
       name: getString(author.name, "Vikas N Dhavande"),
       role: getString(author.role, "Lead Avionics & Product Engineer"),
