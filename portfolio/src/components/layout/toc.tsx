@@ -8,10 +8,16 @@ import {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { AlignLeft } from "lucide-react";
-import { BlogMindmap } from "@/components/layout/blog-mindmap";
 import type { BlogLink } from "@/lib/blog-types";
 import { cn } from "@/lib/utils";
+
+// Lazy-load BlogMindmap to isolate react-force-graph-2d and canvas dependencies
+const BlogMindmap = dynamic(
+  () => import("@/components/layout/blog-mindmap").then((mod) => mod.BlogMindmap),
+  { ssr: false }
+);
 
 export interface TOCItemDef {
   id: string;

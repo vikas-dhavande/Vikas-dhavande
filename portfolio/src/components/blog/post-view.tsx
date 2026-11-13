@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
@@ -9,8 +10,6 @@ import {
   BlogCoverImage,
   BlogHeader,
 } from "@/components/blog/article";
-import { MermaidDiagram } from "@/components/blog/mermaid-diagram";
-import { BlogInteractions } from "@/components/blog/BlogInteractions";
 import type { BlogPost, TOCHeading } from "@/lib/blog-types";
 import { getAdjacentPosts, getAllPosts } from "@/lib/blog-server";
 import {
@@ -18,6 +17,28 @@ import {
   postsToLinkIndex,
 } from "@/lib/blog-links";
 import { getPostCoverSrc } from "@/lib/thumbnail";
+
+// Lazy-load MermaidDiagram to isolate the heavy mermaid bundle until diagrams actually exist on screen
+const MermaidDiagram = dynamic(
+  () => import("@/components/blog/mermaid-diagram").then((mod) => mod.MermaidDiagram),
+  {
+    loading: () => (
+      <div className="h-48 w-full animate-pulse rounded-lg bg-muted/30 my-6 flex items-center justify-center text-xs text-muted-foreground">
+        Rendering diagram...
+      </div>
+    ),
+  }
+);
+
+// Lazy-load BlogInteractions at the bottom of the article to defer Appwrite client & reaction fetching
+const BlogInteractions = dynamic(
+  () => import("@/components/blog/BlogInteractions").then((mod) => mod.BlogInteractions),
+  {
+    loading: () => (
+      <div className="h-32 w-full animate-pulse rounded-lg bg-card/40 my-8" />
+    ),
+  }
+);
 
 function flattenText(node: React.ReactNode): string {
   if (typeof node === "string" || typeof node === "number") {

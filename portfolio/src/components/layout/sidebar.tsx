@@ -15,9 +15,15 @@ import {
   type LucideIcon,
   Sparkles,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import type { BlogCategory, BlogLink } from "@/lib/blog-types";
-import { BlogCommandSearch } from "@/components/layout/blog-command-search";
+
+// Lazy-load BlogCommandSearch to decouple search index and modal dialog from initial sidebar render
+const BlogCommandSearch = dynamic(
+  () => import("@/components/layout/blog-command-search").then((mod) => mod.BlogCommandSearch),
+  { ssr: false }
+);
 
 type SidebarLinkItem = {
   name: string;

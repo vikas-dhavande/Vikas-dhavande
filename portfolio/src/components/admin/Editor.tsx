@@ -20,8 +20,14 @@ import {
   Columns,
   Workflow,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { uploadBlogImage } from "@/lib/appwrite";
-import { MermaidDiagram } from "@/components/blog/mermaid-diagram";
+
+// Lazy-load MermaidDiagram for editor preview
+const MermaidDiagram = dynamic(
+  () => import("@/components/blog/mermaid-diagram").then((m) => m.MermaidDiagram),
+  { ssr: false }
+);
 
 interface EditorProps {
   content: string;

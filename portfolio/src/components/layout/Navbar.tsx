@@ -2,11 +2,17 @@
 
 import React, { useState, useEffect, useRef, useTransition, useCallback } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Blobatar } from "@blobatar/react";
 import { account } from "@/lib/appwrite";
 import { clearCookieAction } from "@/app/actions";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
-import { AuthModal } from "@/components/ui/AuthModal";
+
+// Lazy-load AuthModal so authentication forms & react-aria-components are excluded from the initial critical bundle
+const AuthModal = dynamic(
+  () => import("@/components/ui/AuthModal").then((mod) => mod.AuthModal),
+  { ssr: false }
+);
 import {
   Award,
   BookOpen,

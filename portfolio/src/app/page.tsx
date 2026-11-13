@@ -1,17 +1,47 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import { IntroHeroSection } from "@/components/layout/IntroHeroSection";
 import { HeroSection } from "@/components/layout/HeroSection";
 import { LogoCloud } from "@/components/shadcn-space/blocks/logo-cloud-01/logo-cloud";
-import { ExperienceSection } from "@/components/layout/ExperienceSection";
-import { EducationSection } from "@/components/layout/EducationSection";
-import { CertificatesSection } from "@/components/layout/CertificatesSection";
-import { SkillsSection } from "@/components/layout/SkillsSection";
-import { ProjectsSection } from "@/components/layout/ProjectsSection";
-import { ResourcesSection } from "@/components/layout/ResourcesSection";
-import { BlogPreviewSection } from "@/components/layout/BlogPreviewSection";
-import { SocialMediaSection } from "@/components/layout/SocialMediaSection";
-import { Footer } from "@/components/layout/Footer";
 import { getPortfolioData } from "@/lib/portfolio-service";
+
+// Below-the-fold sections lazy-loaded to optimize initial page load & First Contentful Paint (FCP)
+const ExperienceSection = dynamic(
+  () => import("@/components/layout/ExperienceSection").then((mod) => mod.ExperienceSection),
+  { loading: () => <div className="min-h-[400px] w-full animate-pulse bg-muted/10" /> }
+);
+const EducationSection = dynamic(
+  () => import("@/components/layout/EducationSection").then((mod) => mod.EducationSection),
+  { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
+);
+const CertificatesSection = dynamic(
+  () => import("@/components/layout/CertificatesSection").then((mod) => mod.CertificatesSection),
+  { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
+);
+const SkillsSection = dynamic(
+  () => import("@/components/layout/SkillsSection").then((mod) => mod.SkillsSection),
+  { loading: () => <div className="min-h-[400px] w-full animate-pulse bg-muted/10" /> }
+);
+const ProjectsSection = dynamic(
+  () => import("@/components/layout/ProjectsSection").then((mod) => mod.ProjectsSection),
+  { loading: () => <div className="min-h-[400px] w-full animate-pulse bg-muted/10" /> }
+);
+const ResourcesSection = dynamic(
+  () => import("@/components/layout/ResourcesSection").then((mod) => mod.ResourcesSection),
+  { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
+);
+const BlogPreviewSection = dynamic(
+  () => import("@/components/layout/BlogPreviewSection").then((mod) => mod.BlogPreviewSection),
+  { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
+);
+const SocialMediaSection = dynamic(
+  () => import("@/components/layout/SocialMediaSection").then((mod) => mod.SocialMediaSection),
+  { loading: () => <div className="min-h-[200px] w-full animate-pulse bg-muted/10" /> }
+);
+const Footer = dynamic(
+  () => import("@/components/layout/Footer").then((mod) => mod.Footer),
+  { loading: () => <div className="min-h-[120px] w-full bg-background" /> }
+);
 
 // Enable Incremental Static Regeneration (ISR) for fast edge caching
 export const revalidate = 3600;

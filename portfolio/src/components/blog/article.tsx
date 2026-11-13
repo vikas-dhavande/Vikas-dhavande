@@ -47,7 +47,7 @@ export function BlogCoverImage({ src, alt }: { src?: string; alt: string }) {
       <img
         src={src}
         alt={alt}
-        loading="eager"
+        loading="lazy"
         className="block h-auto max-h-[460px] w-full object-cover"
       />
     </figure>
