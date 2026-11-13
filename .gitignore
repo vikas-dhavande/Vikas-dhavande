@@ -13,4 +13,7 @@ node_modules/
 # Local template copies
 temp-template/
 
+# Subagent teamwork logs and artifacts
+.agents/teamwork/
+
 
