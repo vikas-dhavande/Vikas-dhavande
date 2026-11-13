@@ -78,6 +78,7 @@ export function IntroHeroSection() {
     dark: { base: "#09090b", high: "#ffffffff" },
     cyberpunk: { base: "#0c081f", high: "#00ffcc" },
     light: { base: "#f4f4f5", high: "#2563eb" },
+    looseleaf: { base: "#fbf9f3", high: "#1c1917" },
   }[theme] || { base: "#f4f4f5", high: "#2563eb" };
 
   return (

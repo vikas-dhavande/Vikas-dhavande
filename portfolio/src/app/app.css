@@ -4,6 +4,7 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 @custom-variant cyberpunk (&:where([data-theme="cyberpunk"], [data-theme="cyberpunk"] *, .cyberpunk, .cyberpunk *));
+@custom-variant looseleaf (&:where([data-theme="looseleaf"], [data-theme="looseleaf"] *, .looseleaf, .looseleaf *));
 
 summary::-webkit-details-marker {
   display: none;
@@ -13,6 +14,7 @@ summary::-webkit-details-marker {
   --font-heading: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
   --font-sans: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
   --font-mono: "Fira Code", monospace;
+  --font-handwriting: var(--font-handwriting), "Caveat", "Patrick Hand", cursive, sans-serif;
 
   /* Color Palette Mappings from DESIGN.md */
   --color-background: var(--background);
@@ -180,6 +182,83 @@ html:not(.dark):not(.cyberpunk) {
   --footer-pill-border: rgba(77, 138, 255, 0.3);
   --footer-pill-text: #e0e7ff;
   --footer-divider: rgba(77, 138, 255, 0.2);
+}
+
+/* Looseleaf Paper & Ink Sketch Theme */
+.looseleaf,
+[data-theme="looseleaf"] {
+  --background: #fbf9f3;
+  --foreground: #1c1917;
+  --card: #fffdf8;
+  --card-foreground: #1c1917;
+  --popover: #fffdf8;
+  --popover-foreground: #1c1917;
+  --primary: #1c1917;
+  --primary-foreground: #fbf9f3;
+  --secondary: #f4efe6;
+  --secondary-foreground: #292524;
+  --muted: #f3ece0;
+  --muted-foreground: #78716c;
+  --accent: #e7dfd3;
+  --accent-foreground: #1c1917;
+  --destructive: #dc2626;
+  --border: #2d2a26;
+  --input: #2d2a26;
+  --ring: #2563eb;
+
+  /* Custom Design Properties aligned with hand-drawn aesthetic */
+  --primarylw: #dc2626;
+  --greedy: #2563eb;
+  --darklw: #1c1917;
+  --island-theme: #dc2626;
+  --lw-primary-color: #1c1917;
+  --footer-card-bg-gradient: #fbf9f3;
+  --footer-card-border: #2d2a26;
+  --footer-card-box-border: #2d2a26;
+  --footer-card-btn-bg: #1c1917;
+  --footer-card-btn-text: #fbf9f3;
+  --footer-card-btn-hover: #292524;
+  --footer-card-heading: #1c1917;
+  --footer-card-subtle: #78716c;
+  --footer-card-link-hover: #2563eb;
+  --footer-pill-bg: rgba(28, 25, 23, 0.05);
+  --footer-pill-border: #2d2a26;
+  --footer-pill-text: #292524;
+  --footer-divider: rgba(45, 42, 38, 0.3);
+
+  --font-sans: var(--font-handwriting), "Caveat", "Patrick Hand", cursive, sans-serif;
+  --font-heading: var(--font-handwriting), "Caveat", "Patrick Hand", cursive, sans-serif;
+}
+
+[data-theme="looseleaf"] body {
+  background-color: var(--background);
+  background-image: 
+    linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+[data-theme="looseleaf"] .bg-card,
+[data-theme="looseleaf"] [data-slot="card"] {
+  border-width: 2px;
+  border-color: #2d2a26;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 3px 3px 0px 0px #1c1917;
+}
+
+[data-theme="looseleaf"] button:not([class*="rounded-full"]),
+[data-theme="looseleaf"] [data-slot="button"]:not([class*="rounded-full"]) {
+  border-width: 2px;
+  border-color: #2d2a26;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 2px 2px 0px 0px #1c1917;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+[data-theme="looseleaf"] button:not([class*="rounded-full"]):active,
+[data-theme="looseleaf"] [data-slot="button"]:not([class*="rounded-full"]):active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px 0px #1c1917;
 }
 
 @layer base {

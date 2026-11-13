@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { Sun, Moon, Zap } from "lucide-react";
+import { Sun, Moon, Zap, NotebookPen } from "lucide-react";
 import { useTheme } from "@/components/layout/ThemeProvider";
 
 const THEME_META = {
-  light:     { icon: Sun,  label: "Light",     next: "Dark" },
-  dark:      { icon: Moon, label: "Dark",      next: "Cyberpunk" },
-  cyberpunk: { icon: Zap,  label: "Cyberpunk", next: "Light" },
+  light:     { icon: Sun,         label: "Light",     next: "Dark" },
+  dark:      { icon: Moon,        label: "Dark",      next: "Cyberpunk" },
+  cyberpunk: { icon: Zap,         label: "Cyberpunk", next: "Looseleaf" },
+  looseleaf: { icon: NotebookPen, label: "Looseleaf", next: "Light" },
 } as const;
 
 export function ThemeToggleButton() {

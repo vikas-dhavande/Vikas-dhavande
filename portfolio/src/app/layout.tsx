@@ -1,7 +1,7 @@
 import "./app.css";
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Fira_Code } from "next/font/google";
+import { Inter, Fira_Code, Caveat } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -19,6 +19,12 @@ const inter = Inter({
 const firaCode = Fira_Code({
   subsets: ["latin"],
   variable: "--font-mono",
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-handwriting",
   display: "swap",
 });
 
@@ -99,7 +105,7 @@ const themeScript = `
     if (!theme) theme = "light";
 
     var root = document.documentElement;
-    root.classList.remove("dark", "cyberpunk", "light");
+    root.classList.remove("dark", "cyberpunk", "light", "looseleaf");
     root.removeAttribute("data-theme");
     if (theme === "dark") {
       root.classList.add("dark");
@@ -107,6 +113,9 @@ const themeScript = `
     } else if (theme === "cyberpunk") {
       root.classList.add("dark", "cyberpunk");
       root.setAttribute("data-theme", "cyberpunk");
+    } else if (theme === "looseleaf") {
+      root.classList.add("light", "looseleaf");
+      root.setAttribute("data-theme", "looseleaf");
     } else {
       root.classList.add("light");
       root.setAttribute("data-theme", "light");
@@ -126,7 +135,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={`light ${inter.variable} ${firaCode.variable}`}
+      className={`light ${inter.variable} ${firaCode.variable} ${caveat.variable}`}
       data-theme="light"
       suppressHydrationWarning
     >
