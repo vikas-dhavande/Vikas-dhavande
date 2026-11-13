@@ -141,7 +141,7 @@ export function BlogCommandSearch({
       .slice(0, 40);
 
     return scored;
-  }, [items, query]);
+  }, [open, items, query]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

@@ -9,7 +9,6 @@ import { useTheme } from "next-themes";
 import type { ForceGraphMethods } from "react-force-graph-2d";
 import { Button } from "@/components/ui/button";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import type { BlogLink } from "@/lib/blog-types";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,

@@ -4,6 +4,10 @@ import { IntroHeroSection } from "@/components/layout/IntroHeroSection";
 import { getPortfolioData } from "@/lib/portfolio-service";
 
 // Below-the-fold sections lazy-loaded to optimize initial page load & First Contentful Paint (FCP)
+const HeroSection = dynamic(
+  () => import("@/components/layout/HeroSection").then((mod) => mod.HeroSection),
+  { loading: () => <div className="min-h-[400px] w-full bg-background" /> }
+);
 const LogoCloud = dynamic(
   () => import("@/components/shadcn-space/blocks/logo-cloud-01/logo-cloud").then((mod) => mod.LogoCloud),
   { loading: () => <div className="h-20 w-full bg-background" /> }
@@ -55,6 +59,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-[#E11D48]/30">
       <main className="flex-1 flex flex-col">
         <IntroHeroSection />
+        <HeroSection />
         <LogoCloud />
         <ExperienceSection experiences={portfolioData.experiences} />
         <EducationSection education={portfolioData.education} />

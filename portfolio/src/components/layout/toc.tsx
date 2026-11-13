@@ -10,7 +10,6 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { AlignLeft } from "lucide-react";
-import type { BlogLink } from "@/lib/blog-types";
 import { cn } from "@/lib/utils";
 
 // Lazy-load BlogMindmap to isolate react-force-graph-2d and canvas dependencies
