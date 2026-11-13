@@ -22,7 +22,7 @@ portfolio/
 ├── package.json            # Application scripts and dependencies
 ├── next.config.mjs         # Next.js configuration
 ├── tsconfig.json           # TypeScript configuration and @/* alias
-└── testing.md              # Testing strategy and guidance
+└── ../testing.md           # Testing strategy and guidance at workspace root
 ```
 
 ### Where to make changes
@@ -32,8 +32,7 @@ portfolio/
 - **Homepage sections and shared site layout:** use `src/components/layout/`.
 - **Blog-specific presentation:** use `src/components/blog/`.
 - **Reusable UI primitives:** use `src/components/ui/`; composed blocks and
-  animations belong in `src/components/shadcn-space/`. The `blog-component-15`
-  block is available at `/blog-component-15`.
+  animations belong in `src/components/shadcn-space/`.
 - **Portfolio and blog seed content:** update the JSON files in `src/data/`.
 - **Data access and shared logic:** use `src/lib/`; keep data types alongside
   their domain service.
@@ -48,8 +47,8 @@ That service uses local portfolio JSON by default and can use Appwrite when its
 portfolio database and collection IDs are configured.
 
 Blog routes are under `src/app/blog/`. Blog pages use
-`src/lib/blog-service.ts`, which reads from Appwrite when configured and falls
-back to the local blog JSON. Shared Appwrite client setup lives in
+`src/lib/blog-service.ts` and `src/lib/blog-server.ts`, which reads from Appwrite when configured and falls
+back to local blog markdown files and JSON. Shared Appwrite client setup lives in
 `src/lib/appwrite.ts`.
 
 ## Routes
@@ -58,8 +57,10 @@ back to the local blog JSON. Shared Appwrite client setup lives in
 | --- | --- |
 | `/` | `src/app/page.tsx` |
 | `/blog` | `src/app/blog/page.tsx` |
-| `/blog/[slug]` | `src/app/blog/[slug]/page.tsx` |
-| `/blog-component-15` | `src/app/blog-component-15/page.tsx` |
+| `/blog/[...slug]` | `src/app/blog/[...slug]/page.tsx` |
+| `/blog/for-ai/[...slug]` | `src/app/blog/for-ai/[...slug]/route.ts` |
+| `/admin` | `src/app/admin/page.tsx` |
+| `/dashboard` | `src/app/dashboard/page.tsx` |
 | `/profile` | `src/app/profile/page.tsx` |
 | `/auth/oauth-callback` | `src/app/auth/oauth-callback/page.tsx` |
 | `/api/refresh` | `src/app/api/refresh/route.ts` |
@@ -92,5 +93,5 @@ pnpm start
 ```
 
 The package currently has no dedicated automated test command. See
-[`testing.md`](./testing.md) for the testing strategy and guidance; use
+[`testing.md`](../testing.md) for the testing strategy and guidance; use
 `pnpm build` to verify the production application build.
