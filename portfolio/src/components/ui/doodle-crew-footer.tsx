@@ -691,15 +691,24 @@ export function DoodleCrewFooter({
   }, [view])
 
   // ---- doodles ----
+  const [isMobile, setIsMobile] = React.useState(false)
+  React.useEffect(() => {
+    const check = () => setIsMobile(typeof window !== "undefined" && window.innerWidth < 640)
+    check()
+    window.addEventListener("resize", check, { passive: true })
+    return () => window.removeEventListener("resize", check)
+  }, [])
+
   const doodleList = React.useMemo(() => {
     const kinds = doodles.length ? doodles : []
-    const n = kinds.length ? clamp(Math.floor(doodleCount) || 0, 0, 40) : 0
+    const count = isMobile ? Math.min(doodleCount, 6) : doodleCount
+    const n = kinds.length ? clamp(Math.floor(count) || 0, 0, 40) : 0
     return Array.from({ length: n }, (_, k) => ({
       kind: kinds[k % kinds.length],
-      size: 22 + hash(k * 4.7) * 14,
+      size: (isMobile ? 18 : 22) + hash(k * 4.7) * (isMobile ? 10 : 14),
       seed: k,
     }))
-  }, [doodles, doodleCount])
+  }, [doodles, doodleCount, isMobile])
 
   const sim = React.useRef({
     floaters: [] as Floater[],
@@ -1117,16 +1126,18 @@ export function DoodleCrewFooter({
             {interactive &&
               placed.map((p) => {
                 const bx = p.flip > 0 ? [p.art.box.l, p.art.box.r] : [-p.art.box.r, -p.art.box.l]
-                const top = p.seat === "behind" ? p.art.box.t : p.art.box.t
+                const top = p.art.box.t
                 const bottom = p.seat === "behind" ? -30 : p.art.box.b
+                const padX = 16
+                const padY = 16
                 return (
                   <rect
                     key={"hit" + p.i}
                     className="dcf-hit"
-                    x={p.x + bx[0] * p.scale}
-                    y={p.y + top * p.scale}
-                    width={(bx[1] - bx[0]) * p.scale}
-                    height={(bottom - top) * p.scale}
+                    x={p.x + (bx[0] - padX) * p.scale}
+                    y={p.y + (top - padY) * p.scale}
+                    width={(bx[1] - bx[0] + padX * 2) * p.scale}
+                    height={(bottom - top + padY * 2) * p.scale}
                     rx={12}
                     role="button"
                     tabIndex={0}
@@ -1144,17 +1155,24 @@ export function DoodleCrewFooter({
           </svg>
 
           <div className="dcf-bubbles" aria-live="polite">
-            {placed.map((p) =>
-              talking === p.i && p.m.says ? (
+            {placed.map((p) => {
+              if (talking !== p.i || !p.m.says) return null
+              const isFarLeft = p.x < view.x + view.w * 0.32
+              const isFarRight = p.x > view.x + view.w * 0.68
+              const alignCls = isFarLeft ? " is-right" : isFarRight ? " is-left" : ""
+              return (
                 <div
                   key={p.i}
-                  className={"dcf-bubble" + (p.x > view.x + view.w * 0.72 ? " is-left" : "")}
-                  style={{ left: pct(p.x, view.x, view.w), top: pct(p.y + p.art.box.t * p.scale - 6, view.y, view.h) }}
+                  className={"dcf-bubble" + alignCls}
+                  style={{
+                    left: pct(p.x, view.x, view.w),
+                    top: pct(p.y + p.art.box.t * p.scale - 8, view.y, view.h),
+                  }}
                 >
                   {p.m.says}
                 </div>
-              ) : null,
-            )}
+              )
+            })}
           </div>
         </div>
 
@@ -1250,7 +1268,7 @@ export function DoodleCrewFooter({
 export default DoodleCrewFooter
 
 const CSS =
-  ".dcf{position:relative;isolation:isolate;overflow:hidden;overflow:clip;width:100%;box-sizing:border-box;display:flex;flex-direction:column;background:var(--dcf-bg);color:var(--dcf-ink);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;--dcf-soft:color-mix(in oklab,var(--dcf-ink) 62%,var(--dcf-bg));--dcf-line:color-mix(in oklab,var(--dcf-ink) 14%,var(--dcf-bg));--dcf-pad:clamp(16px,4vw,56px)}" +
+  ".dcf{position:relative;isolation:isolate;overflow:hidden;overflow:clip;width:100%;box-sizing:border-box;display:flex;flex-direction:column;background:var(--dcf-bg);color:var(--dcf-ink);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;--dcf-soft:color-mix(in oklab,var(--dcf-ink) 62%,var(--dcf-bg));--dcf-line:color-mix(in oklab,var(--dcf-ink) 14%,var(--dcf-bg));--dcf-pad:clamp(16px,4vw,56px);touch-action:pan-y}" +
   ":where(.dcf) *,:where(.dcf) *::before,:where(.dcf) *::after{box-sizing:border-box}" +
   ":where(.dcf) a{color:inherit;text-decoration:none}" +
   ":where(.dcf) button{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer}" +
@@ -1275,7 +1293,7 @@ const CSS =
   ".dcf-squiggle path{fill:none;stroke:var(--dcf-accent);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .35s cubic-bezier(.4,0,.2,1)}" +
   ".dcf-link:hover .dcf-squiggle path,.dcf-link:focus-visible .dcf-squiggle path{stroke-dashoffset:0}" +
   // world
-  ".dcf-world{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(22px,4vw,48px) var(--dcf-pad) 0;max-width:1360px;width:100%;margin:0 auto}" +
+  ".dcf-world{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(54px,7.5vw,78px) var(--dcf-pad) 0;max-width:1360px;width:100%;margin:0 auto;touch-action:pan-y}" +
   ".dcf-stage{position:relative;z-index:1}" +
   ".dcf-svg{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}" +
   ".dcf-svg text{fill:var(--dcf-ink)}" +
@@ -1288,7 +1306,7 @@ const CSS =
   ".dcf-ground .dcf-tufts{stroke-width:1.8}" +
   ".dcf-pebble{fill:var(--dcf-bg);stroke:var(--dcf-ink);stroke-width:1.6}" +
   ".dcf-dust{fill:none;stroke:var(--dcf-ink);stroke-width:3;stroke-linecap:round;opacity:0}" +
-  ".dcf-hit{fill:transparent;stroke:none;cursor:pointer;outline:none}" +
+  ".dcf-hit{fill:transparent;stroke:none;cursor:pointer;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}" +
   ".dcf-hit:focus-visible{stroke:var(--dcf-ink);stroke-width:2.5;stroke-dasharray:6 6}" +
   ".dcf-glyph{transform-box:fill-box;transform-origin:50% 100%}" +
   ".dcf[data-interactive='1'] .dcf-glyph:hover{animation:dcf-jiggle .6s cubic-bezier(.3,1.5,.5,1)}" +
@@ -1300,11 +1318,13 @@ const CSS =
   ".dcf-hopper.is-hop{animation:dcf-hop .62s cubic-bezier(.3,.7,.4,1)}" +
   ".dcf-arrive{transform-box:fill-box;transform-origin:50% 100%}" +
   // bubbles
-  ".dcf-bubbles{position:absolute;inset:0;pointer-events:none;z-index:2}" +
-  ".dcf-bubble{position:absolute;transform:translate(-50%,-100%) rotate(-2deg);transform-origin:50% 100%;background:var(--dcf-bg);color:var(--dcf-ink);border:2px solid var(--dcf-ink);border-radius:16px;padding:7px 12px;font-size:13px;font-weight:700;line-height:1.25;white-space:nowrap;box-shadow:3px 3px 0 var(--dcf-ink);animation:dcf-bubble .32s cubic-bezier(.3,1.6,.5,1) both;margin-top:-4px}" +
+  ".dcf-bubbles{position:absolute;inset:0;pointer-events:none;z-index:10}" +
+  ".dcf-bubble{position:absolute;transform:translate(-50%,-100%) rotate(-2deg);transform-origin:50% 100%;background:var(--dcf-bg);color:var(--dcf-ink);border:2px solid var(--dcf-ink);border-radius:16px;padding:7px 12px;font-size:13px;font-weight:700;line-height:1.3;white-space:normal;max-width:min(240px,78vw);text-align:center;word-break:break-word;box-shadow:3px 3px 0 var(--dcf-ink);animation:dcf-bubble .32s cubic-bezier(.3,1.6,.5,1) both;margin-top:-6px;pointer-events:none}" +
   ".dcf-bubble::after{content:'';position:absolute;left:50%;bottom:-9px;width:14px;height:14px;background:var(--dcf-bg);border-right:2px solid var(--dcf-ink);border-bottom:2px solid var(--dcf-ink);transform:translateX(-50%) rotate(45deg) skew(8deg,8deg)}" +
-  ".dcf-bubble.is-left{transform:translate(-88%,-100%) rotate(2deg);transform-origin:88% 100%}" +
-  ".dcf-bubble.is-left::after{left:88%}" +
+  ".dcf-bubble.is-right{transform:translate(-14%,-100%) rotate(2deg);transform-origin:14% 100%}" +
+  ".dcf-bubble.is-right::after{left:18%}" +
+  ".dcf-bubble.is-left{transform:translate(-86%,-100%) rotate(-2deg);transform-origin:86% 100%}" +
+  ".dcf-bubble.is-left::after{left:82%}" +
   // doodles
   ".dcf-doodles{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}" +
   ".dcf-doodle{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;will-change:transform;touch-action:manipulation}" +
@@ -1372,6 +1392,7 @@ const CSS =
   "@keyframes dcf-wiggle{0%,100%{transform:none}30%{transform:rotate(-14deg) scale(1.15)}60%{transform:rotate(10deg)}}" +
   "@keyframes dcf-up{0%,100%{transform:none}50%{transform:translateY(-3px)}}" +
   "@media (max-width:860px){.dcf-top{grid-template-columns:1fr;grid-template-rows:auto}.dcf-brand,.dcf-blurb,.dcf-cols{grid-column:1;grid-row:auto}.dcf-cols{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px;row-gap:22px}.dcf-copy{width:100%;margin-right:0}}" +
-  "@media (max-width:480px){.dcf-btn{height:42px;font-size:13.5px;padding:0 16px 0 13px}.dcf-bubble{font-size:12px;padding:6px 10px}.dcf-totop span{display:none}}" +
+  "@media (max-width:640px){.dcf{--dcf-pad:clamp(12px,3.5vw,18px)}.dcf-world{padding:clamp(46px,7vw,64px) var(--dcf-pad) 0}.dcf-svg{min-height:120px;max-height:200px}.dcf-bar{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;padding:16px var(--dcf-pad) 24px}.dcf-copy{margin-right:0;text-align:center;font-size:12px;order:2}.dcf-inline{justify-content:center;gap:6px 16px;order:1}.dcf-inline .dcf-link{font-size:12.5px;padding:4px 6px}.dcf-totop{order:3;margin-top:2px;padding:7px 15px}.dcf-totop span{display:inline;font-size:12px}.dcf-bubble{font-size:11.5px;padding:6px 10px;border-radius:12px;max-width:min(200px,76vw)}}" +
+  "@media (max-width:480px){.dcf-btn{height:42px;font-size:13.5px;padding:0 16px 0 13px}.dcf-bubble{font-size:11px;padding:5px 9px;max-width:min(180px,72vw)}.dcf-bar{padding:14px 10px 20px;gap:10px}.dcf-inline{gap:6px 12px}}" +
   "@media (prefers-reduced-motion:reduce){.dcf *,.dcf *::before,.dcf *::after{animation:none!important;transition:none!important}.dcf .dcf-letter,.dcf .dcf-arrive,.dcf .dcf-word,.dcf .dcf-pop,.dcf .dcf-rise,.dcf .dcf-fade,.dcf .dcf-doodle-in{opacity:1!important}.dcf .dcf-draw{stroke-dashoffset:0!important}.dcf .dcf-dust{opacity:0!important}}"
 
