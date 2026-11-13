@@ -284,7 +284,7 @@ export function TableOfContents({
 }: {
   items: TOCItemDef[];
   currentSlug?: string;
-  links?: BlogLink[];
+  links?: { title: string; href: string; category: string }[];
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const computed = useMemo(() => buildTocPath(items), [items]);
@@ -340,7 +340,7 @@ export function TableOfContents({
   }, [handleScroll]);
 
   return (
-    <aside className="sticky top-24 hidden h-[calc(100vh-6rem)] overflow-y-auto py-6 pl-4 font-sans xl:block">
+    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] overflow-y-auto py-4 pl-4 font-sans xl:block">
       <div className="space-y-6">
         {items.length > 0 && (
           <div className="space-y-4">

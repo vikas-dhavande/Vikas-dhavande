@@ -1,5 +1,5 @@
 import React from "react";
-import { getAllPosts, getBlogLinks } from "@/lib/blog-server";
+import { getAllPosts, getMindmapLinks } from "@/lib/blog-server";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { TableOfContents } from "@/components/layout/toc";
 import { Sparkles, BookOpen } from "lucide-react";
@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function BlogIndexPage() {
   const posts = getAllPosts();
-  const links = getBlogLinks(posts);
+  const mindmapLinks = getMindmapLinks(posts);
 
   const featuredPost = posts.find((p) => p.featured) || posts[0];
   const gridPosts = posts.filter((p) => p.slug !== featuredPost?.slug);
@@ -24,7 +24,7 @@ export default function BlogIndexPage() {
 
   return (
     <>
-      <main className="relative min-w-0 py-6 md:pl-4 lg:pl-8 xl:pl-10">
+      <main className="relative min-w-0 py-4 md:pl-4 lg:pl-8 xl:pl-10">
         <div className="w-full min-w-0 max-w-4xl space-y-10">
           {/* Header */}
           <header className="space-y-3 border-b border-border/60 pb-8">
@@ -77,7 +77,7 @@ export default function BlogIndexPage() {
 
       <TableOfContents
         items={headings}
-        links={links}
+        links={mindmapLinks}
       />
     </>
   );

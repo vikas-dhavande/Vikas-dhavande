@@ -83,6 +83,7 @@ export function BlogCommandSearch({
   const [query, setQuery] = useState("");
 
   const items = useMemo<SearchItem[]>(() => {
+    if (!open) return [];
     return links.map((post) => ({
       href: post.href,
       category: post.category,
@@ -90,9 +91,10 @@ export function BlogCommandSearch({
       title: post.title,
       searchText: post.searchText,
     }));
-  }, [links]);
+  }, [open, links]);
 
   const filtered = useMemo(() => {
+    if (!open) return [];
     const terms = parseQueryTerms(query);
     if (terms.length === 0) {
       return items.slice(0, 40).map((item) => ({
@@ -184,69 +186,66 @@ export function BlogCommandSearch({
         </kbd>
       </button>
 
-      <div
-        aria-hidden={!open}
-        className={cn(
-          "fixed inset-0 z-[260] flex items-start justify-center p-4 pt-[12vh] transition-opacity duration-200",
-          open ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-        onClick={() => setOpen(false)}
-      >
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {open && (
         <div
-          onClick={(event) => event.stopPropagation()}
-          className={cn(
-            "relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-background shadow-2xl backdrop-blur-xl transition-all duration-200",
-            open ? "translate-y-0 scale-100" : "-translate-y-2 scale-[0.98]",
-          )}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[260] flex items-start justify-center p-4 pt-[12vh] transition-opacity duration-200 opacity-100"
+          onClick={() => setOpen(false)}
         >
-          <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
-            <Search className="size-4 text-muted-foreground shrink-0" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by topic, keyword, or standard..."
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-          </div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-background shadow-2xl backdrop-blur-xl transition-all duration-200 translate-y-0 scale-100"
+          >
+            <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
+              <Search className="size-4 text-muted-foreground shrink-0" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by topic, keyword, or standard..."
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+            </div>
 
-          <div className="max-h-[min(65vh,480px)] overflow-y-auto p-2">
-            {filtered.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-                No matching articles found.
-              </p>
-            ) : (
-              filtered.map((item) => {
-                const terms = parseQueryTerms(query);
-                const highlightedTitle = highlightText(item.title, terms);
-                const highlightedSnippet = highlightText(item.snippet, terms);
+            <div className="max-h-[min(65vh,480px)] overflow-y-auto p-2">
+              {filtered.length === 0 ? (
+                <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  No matching articles found.
+                </p>
+              ) : (
+                filtered.map((item) => {
+                  const terms = parseQueryTerms(query);
+                  const highlightedTitle = highlightText(item.title, terms);
+                  const highlightedSnippet = highlightText(item.snippet, terms);
 
-                return (
-                  <button
-                    key={item.href}
-                    type="button"
-                    onClick={() => openPost(item.href)}
-                    className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/60 cursor-pointer"
-                  >
-                    <span className="mt-0.5 shrink-0 rounded-md border border-border bg-secondary/80 px-2 py-0.5 text-[10px] font-mono font-medium text-muted-foreground">
-                      {item.category}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-foreground">
-                        {highlightedTitle}
+                  return (
+                    <button
+                      key={item.href}
+                      type="button"
+                      onClick={() => openPost(item.href)}
+                      className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/60 cursor-pointer"
+                    >
+                      <span className="mt-0.5 shrink-0 rounded-md border border-border bg-secondary/80 px-2 py-0.5 text-[10px] font-mono font-medium text-muted-foreground">
+                        {item.category}
                       </span>
-                      <span className="block text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                        {highlightedSnippet}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {highlightedTitle}
+                        </span>
+                        <span className="block text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                          {highlightedSnippet}
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                );
-              })
-            )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

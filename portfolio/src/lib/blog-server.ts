@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
@@ -30,6 +31,21 @@ type Frontmatter = {
   tags?: string[];
   featured?: boolean;
 };
+
+// In-memory module cache across server requests
+let cachedPosts: BlogPost[] | null = null;
+let cachedLinks: BlogLink[] | null = null;
+let cachedMindmapLinks: { title: string; href: string; category: string }[] | null = null;
+let cachedCategories: BlogCategory[] | null = null;
+let cachedSlugMap: Map<string, BlogPost> | null = null;
+
+export function clearBlogCache(): void {
+  cachedPosts = null;
+  cachedLinks = null;
+  cachedMindmapLinks = null;
+  cachedCategories = null;
+  cachedSlugMap = null;
+}
 
 function titleCase(value: string) {
   return value
@@ -96,6 +112,7 @@ function stripMarkdown(markdown: string) {
     .replace(/[*_~>-]/g, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
+    .slice(0, 2500)
     .trim();
 }
 
@@ -122,12 +139,13 @@ function isRecentDate(date: string) {
   return diffMs <= NEW_DAYS * 24 * 60 * 60 * 1000;
 }
 
-export function getAllPosts(): BlogPost[] {
+export const getAllPosts = cache((): BlogPost[] => {
+  if (cachedPosts) return cachedPosts;
   if (!fs.existsSync(BLOG_ROOT)) return [];
   const files: string[] = [];
   collectMarkdownFiles(BLOG_ROOT, files);
 
-  return files
+  const posts = files
     .map((absPath) => {
       const rel = path.relative(BLOG_ROOT, absPath);
       const noExt = rel.replace(/\.md$/, "");
@@ -181,25 +199,47 @@ export function getAllPosts(): BlogPost[] {
       } satisfies BlogPost;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
 
-export function getPostBySegments(segments: string[]): BlogPost | undefined {
-  const joined = segments.join("/");
+  cachedPosts = posts;
+
+  // Build slug lookup map for O(1) segment resolution
+  const slugMap = new Map<string, BlogPost>();
+  for (const post of posts) {
+    slugMap.set(post.slug, post);
+    const leaf = post.segments[post.segments.length - 1];
+    if (leaf && !slugMap.has(leaf)) {
+      slugMap.set(leaf, post);
+    }
+  }
+  cachedSlugMap = slugMap;
+
+  return posts;
+});
+
+export const getPostBySegments = cache((segments: string[]): BlogPost | undefined => {
   const allPosts = getAllPosts();
+  const joined = segments.join("/");
 
-  // Try exact match first (e.g. "avionics/hil-simulation-testbeds-aerospace-avionics")
-  const exact = allPosts.find((post) => post.slug === joined);
-  if (exact) return exact;
+  if (cachedSlugMap?.has(joined)) {
+    return cachedSlugMap.get(joined);
+  }
 
-  // Fallback: match by the leaf slug (e.g. "hil-simulation-testbeds-aerospace-avionics")
   const leafSlug = segments[segments.length - 1];
-  return allPosts.find((post) => {
-    const postLeaf = post.segments[post.segments.length - 1];
-    return postLeaf === leafSlug;
-  });
-}
+  if (leafSlug && cachedSlugMap?.has(leafSlug)) {
+    return cachedSlugMap.get(leafSlug);
+  }
 
-export function getBlogCategories(posts: BlogPost[]): BlogCategory[] {
+  return allPosts.find((post) => {
+    return (
+      post.slug === joined ||
+      post.segments[post.segments.length - 1] === leafSlug
+    );
+  });
+});
+
+export const getBlogCategories = cache((posts: BlogPost[]): BlogCategory[] => {
+  if (cachedCategories) return cachedCategories;
+
   const byCategory = new Map<string, BlogCategory>();
   for (const post of posts) {
     const categorySlug = post.segments[0]?.toLowerCase() ?? "general";
@@ -217,13 +257,12 @@ export function getBlogCategories(posts: BlogPost[]): BlogCategory[] {
     });
   }
 
-  return [...byCategory.values()]
+  const result = [...byCategory.values()]
     .map((category) => ({
       ...category,
       items: category.items.sort((a, b) => a.href.localeCompare(b.href)),
     }))
     .sort((a, b) => {
-      // Prioritize primary technical categories
       const priorityOrder = ["avionics", "systems", "automotive"];
       const aIdx = priorityOrder.indexOf(a.slug);
       const bIdx = priorityOrder.indexOf(b.slug);
@@ -232,34 +271,64 @@ export function getBlogCategories(posts: BlogPost[]): BlogCategory[] {
       if (bIdx !== -1) return 1;
       return a.name.localeCompare(b.name);
     });
-}
 
-export function getBlogLinks(posts: BlogPost[]): BlogLink[] {
-  return posts.map((post) => ({
+  cachedCategories = result;
+  return result;
+});
+
+export const getBlogLinks = cache((posts: BlogPost[]): BlogLink[] => {
+  if (cachedLinks) return cachedLinks;
+
+  const links = posts.map((post) => ({
     title: post.title,
     href: post.href,
     category: post.category,
     description: post.description,
     searchText: stripMarkdown(post.markdown),
   }));
-}
 
-export function getAdjacentPosts(slug: string): {
+  cachedLinks = links;
+  return links;
+});
+
+export type MindmapLink = {
+  title: string;
+  href: string;
+  category: string;
+};
+
+export const getMindmapLinks = cache(
+  (posts: BlogPost[]): MindmapLink[] => {
+    if (cachedMindmapLinks) return cachedMindmapLinks;
+
+    const links = posts.map((post) => ({
+      title: post.title,
+      href: post.href,
+      category: post.category,
+    }));
+
+    cachedMindmapLinks = links;
+    return links;
+  }
+);
+
+export const getAdjacentPosts = cache((slug: string): {
   prev?: BlogPost;
   next?: BlogPost;
-} {
+} => {
   const posts = getAllPosts();
+  const leaf = slug.split("/").pop();
   const index = posts.findIndex(
     (post) =>
       post.slug === slug ||
-      post.segments[post.segments.length - 1] === slug.split("/").pop(),
+      post.segments[post.segments.length - 1] === leaf,
   );
   if (index === -1) return {};
   return {
     prev: index > 0 ? posts[index - 1] : undefined,
     next: index < posts.length - 1 ? posts[index + 1] : undefined,
   };
-}
+});
 
 export function getDefaultPostPath(): string {
   const posts = getAllPosts();

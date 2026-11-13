@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 
 type MermaidDiagramProps = {
@@ -32,11 +32,34 @@ function sanitizeSvg(svg: string): string {
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inView, setInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const chartId = useId().replace(/:/g, "");
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark" || resolvedTheme === "cyberpunk";
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "250px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
     let cancelled = false;
 
     async function render() {
@@ -77,29 +100,35 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     return () => {
       cancelled = true;
     };
-  }, [chart, chartId, isDark]);
+  }, [inView, chart, chartId, isDark]);
 
   if (error) {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      <div
+        ref={containerRef}
+        className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive my-6"
+      >
         {error}
       </div>
     );
   }
 
-  if (!svg) {
+  if (!inView || !svg) {
     return (
-      <div className="rounded-xl border border-border px-4 py-3 text-sm text-muted-foreground animate-pulse">
-        Rendering diagram...
+      <div
+        ref={containerRef}
+        className="my-6 min-h-[160px] w-full rounded-xl border border-border bg-card/40 p-4 shadow-sm flex items-center justify-center text-xs text-muted-foreground animate-pulse"
+      >
+        <span>Rendering diagram...</span>
       </div>
     );
   }
 
   return (
     <div
+      ref={containerRef}
       className="my-6 overflow-x-auto rounded-xl border border-border bg-card p-4 shadow-md flex justify-center"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
 }
-

@@ -16,6 +16,7 @@ const contentSecurityPolicy = `
 
 const nextConfig = {
   compress: true,
+  serverExternalPackages: ["node-appwrite"],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

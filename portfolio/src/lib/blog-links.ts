@@ -9,8 +9,14 @@ export type BlogLinkIndexEntry = {
 
 const WIKILINK_PATTERN = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
+let cachedIndex: BlogLinkIndexEntry[] | null = null;
+let lastPostsCount = 0;
+
 export function postsToLinkIndex(posts: BlogPost[]): BlogLinkIndexEntry[] {
-  return posts.map((post) => {
+  if (cachedIndex && lastPostsCount === posts.length) {
+    return cachedIndex;
+  }
+  cachedIndex = posts.map((post) => {
     const fileStem = post.segments.at(-1) ?? post.slug;
     return {
       blogSlug: post.slug,
@@ -19,6 +25,8 @@ export function postsToLinkIndex(posts: BlogPost[]): BlogLinkIndexEntry[] {
       fileStem,
     };
   });
+  lastPostsCount = posts.length;
+  return cachedIndex;
 }
 
 function resolveWikilinkTarget(

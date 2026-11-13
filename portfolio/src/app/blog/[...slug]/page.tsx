@@ -4,7 +4,7 @@ import { BlogPostView } from "@/components/blog/post-view";
 import { TableOfContents } from "@/components/layout/toc";
 import {
   getAllPosts,
-  getBlogLinks,
+  getMindmapLinks,
   getPostBySegments,
 } from "@/lib/blog-server";
 
@@ -89,11 +89,11 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const allPosts = getAllPosts();
-  const links = getBlogLinks(allPosts);
+  const mindmapLinks = getMindmapLinks(allPosts);
 
   return (
     <>
-      <main className="relative min-w-0 py-6 md:pl-4 lg:pl-8 xl:pl-10">
+      <main className="relative min-w-0 py-4 md:pl-4 lg:pl-8 xl:pl-10">
         <div className="w-full min-w-0 max-w-4xl">
           <BlogPostView
             post={post}
@@ -105,7 +105,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       <TableOfContents
         items={post.headings}
         currentSlug={post.slug}
-        links={links}
+        links={mindmapLinks}
       />
     </>
   );

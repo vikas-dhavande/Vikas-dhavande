@@ -18,8 +18,17 @@ import {
   UserRound,
 } from "lucide-react";
 import { Models } from "appwrite";
+import dynamic from "next/dynamic";
 import { account, storage, checkUserRole } from "@/lib/appwrite";
-import LoginForm from "@/components/shadcn-space/blocks/login-01/login";
+
+const LoginForm = dynamic(
+  () => import("@/components/shadcn-space/blocks/login-01/login"),
+  {
+    loading: () => (
+      <div className="h-96 w-full max-w-md mx-auto rounded-xl border border-border bg-card/40 animate-pulse" />
+    ),
+  }
+);
 
 type DashboardPreferences = Models.Preferences & {
   profileImageFileId?: string;

@@ -40,7 +40,7 @@ export function BlogMindmap({
   links,
 }: {
   currentSlug: string;
-  links: BlogLink[];
+  links: { title: string; href: string; category: string }[];
 }) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
@@ -176,6 +176,27 @@ function MindMapCanvas({
   const [size, setSize] = useState({ height: 0, width: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [zoomK, setZoomK] = useState(1);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "150px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const getNodeRadius = useCallback(
     (node: GraphNode) => {
@@ -230,7 +251,7 @@ function MindMapCanvas({
       ref={containerRef}
       className={`${className} w-full overflow-hidden rounded-xl border border-border bg-muted/20 ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
     >
-      {size.width > 0 && size.height > 0 ? (
+      {size.width > 0 && size.height > 0 && inView ? (
         <ForceGraph2D
           ref={graphRef}
           width={size.width}
@@ -349,7 +370,17 @@ function MindMapCanvas({
             ctx.fillText(typed.label, x + radius + 4, y);
           }}
         />
-      ) : null}
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+          <div className="size-2 rounded-full bg-primary/70 animate-ping" />
+          <span className="text-xs font-medium text-muted-foreground">
+            Knowledge Graph
+          </span>
+          <span className="text-[10px] text-muted-foreground/70">
+            Scroll into view to activate
+          </span>
+        </div>
+      )}
     </div>
   );
 }

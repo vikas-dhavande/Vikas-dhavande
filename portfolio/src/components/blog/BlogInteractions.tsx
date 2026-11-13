@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Heart,
   Rocket,
@@ -39,8 +39,31 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
   const [reacting, setReacting] = useState<string | null>(null);
+  const [inView, setInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
     let active = true;
 
     // Check logged in user
@@ -71,7 +94,7 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [inView, slug]);
 
   const handleReaction = async (type: "like" | "rocket" | "heart" | "idea") => {
     if (!user) {
@@ -121,7 +144,7 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
   const isIdeated = reactions.userReactions?.includes("idea");
 
   return (
-    <div className="space-y-6">
+    <div ref={containerRef} className="space-y-6">
       {/* ── Reactions Box ── */}
       <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">

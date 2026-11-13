@@ -6,8 +6,17 @@ import { useRouter } from "next/navigation";
 import { Blobatar } from "@blobatar/react";
 import { ArrowLeft, Camera, LogOut, ShieldCheck } from "lucide-react";
 import { account, storage } from "@/lib/appwrite";
+import dynamic from "next/dynamic";
 import { clearCookieAction } from "@/app/actions";
-import LoginForm from "@/components/shadcn-space/blocks/login-01/login";
+
+const LoginForm = dynamic(
+  () => import("@/components/shadcn-space/blocks/login-01/login"),
+  {
+    loading: () => (
+      <div className="h-96 w-full max-w-md mx-auto rounded-xl border border-border bg-card/40 animate-pulse" />
+    ),
+  }
+);
 import {
   updateProfileFieldAction,
   uploadProfileImageAction,
