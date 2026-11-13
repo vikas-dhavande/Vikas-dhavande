@@ -1008,40 +1008,44 @@ export function DoodleCrewFooter({
     >
       <style>{CSS}</style>
 
-      <div className="dcf-top dcf-rise" style={{ "--d": "0ms" } as React.CSSProperties}>
-        <div className="dcf-brand">
-          <span className="dcf-logo" aria-hidden="true">
-            <svg viewBox="-60 -150 120 120" width="30" height="30">
-              <g className="dcf-art">
-                <path d="M-30 -104 C-40 -112 -44 -124 -40 -138 C-32 -129 -22 -122 -13 -114 Z" />
-                <path d="M18 -114 C26 -124 36 -130 47 -133 C45 -120 41 -110 32 -101 Z" />
-                <path d="M-44 -30 C-54 -56 -54 -70 -42 -90 C-32 -110 -14 -118 2 -118 C22 -118 40 -108 48 -88 C58 -68 56 -54 48 -30 Z" />
-                <circle className="k" cx="-15" cy="-84" r="5.5" />
-                <circle className="k" cx="13" cy="-86" r="5.5" />
-                <path className="n" d="M-12 -66 C-6 -60 6 -60 12 -67" />
-              </g>
-            </svg>
-          </span>
-          <span className="dcf-brandname">{brand}</span>
+      {Boolean(brand || blurb || columns.length > 0) && (
+        <div className="dcf-top dcf-rise" style={{ "--d": "0ms" } as React.CSSProperties}>
+          {brand && (
+            <div className="dcf-brand">
+              <span className="dcf-logo" aria-hidden="true">
+                <svg viewBox="-60 -150 120 120" width="30" height="30">
+                  <g className="dcf-art">
+                    <path d="M-30 -104 C-40 -112 -44 -124 -40 -138 C-32 -129 -22 -122 -13 -114 Z" />
+                    <path d="M18 -114 C26 -124 36 -130 47 -133 C45 -120 41 -110 32 -101 Z" />
+                    <path d="M-44 -30 C-54 -56 -54 -70 -42 -90 C-32 -110 -14 -118 2 -118 C22 -118 40 -108 48 -88 C58 -68 56 -54 48 -30 Z" />
+                    <circle className="k" cx="-15" cy="-84" r="5.5" />
+                    <circle className="k" cx="13" cy="-86" r="5.5" />
+                    <path className="n" d="M-12 -66 C-6 -60 6 -60 12 -67" />
+                  </g>
+                </svg>
+              </span>
+              <span className="dcf-brandname">{brand}</span>
+            </div>
+          )}
+          {blurb && <p className="dcf-blurb">{blurb}</p>}
+          {columns.length > 0 && (
+            <nav className="dcf-cols" aria-label="Footer">
+              {columns.map((col) => (
+                <div className="dcf-col" key={col.title}>
+                  <h3 className="dcf-coltitle">{col.title}</h3>
+                  <ul>
+                    {col.links.map((l) => (
+                      <li key={l.label}>
+                        <Link link={l} className="dcf-link" />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          )}
         </div>
-        {blurb && <p className="dcf-blurb">{blurb}</p>}
-        {columns.length > 0 && (
-          <nav className="dcf-cols" aria-label="Footer">
-            {columns.map((col) => (
-              <div className="dcf-col" key={col.title}>
-                <h3 className="dcf-coltitle">{col.title}</h3>
-                <ul>
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      <Link link={l} className="dcf-link" />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </nav>
-        )}
-      </div>
+      )}
 
       <div className="dcf-world" ref={worldRef}>
         <div className="dcf-stage">
@@ -1175,13 +1179,15 @@ export function DoodleCrewFooter({
         )}
 
         <div className="dcf-cta">
-          <p className="dcf-tagline">
-            {words.map((w, k) => (
-              <span key={k} className="dcf-word" style={{ "--d": tl.word(k) + "ms" } as React.CSSProperties}>
-                {w}{" "}
-              </span>
-            ))}
-          </p>
+          {words.length > 0 && (
+            <p className="dcf-tagline">
+              {words.map((w, k) => (
+                <span key={k} className="dcf-word" style={{ "--d": tl.word(k) + "ms" } as React.CSSProperties}>
+                  {w}{" "}
+                </span>
+              ))}
+            </p>
+          )}
           {actions.length > 0 && (
             <div className="dcf-actions">
               {actions.map((a, k) => {

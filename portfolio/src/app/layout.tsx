@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -133,11 +134,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
         {/* Blocking anti-flash script — runs synchronously before CSS render */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20 flex flex-col">
         <ThemeProvider initialTheme="light">
           <InitialWebLoader />
           <Navbar />
-          {children}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
+          <Footer />
         </ThemeProvider>
         <SpeedInsights />
         <Analytics />

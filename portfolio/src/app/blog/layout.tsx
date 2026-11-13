@@ -1,6 +1,5 @@
 import React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Footer } from "@/components/layout/Footer";
 import { getAllPosts, getBlogCategories, getBlogLinks } from "@/lib/blog-server";
 
 export default function BlogLayout({
@@ -36,9 +35,6 @@ export default function BlogLayout({
         {/* Column 2 & 3: Content + Right Rail TOC */}
         {children}
       </div>
-
-      {/* Preserve existing site Footer */}
-      <Footer />
     </div>
   );
 }

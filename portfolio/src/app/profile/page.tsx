@@ -377,10 +377,6 @@ export default function ProfilePage() {
           )}
         </section>
       </main>
-
-      <footer className="relative z-10 w-full border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
-        Vikas N Dhavande Portfolio © {new Date().getFullYear()}
-      </footer>
     </div>
   );
 }

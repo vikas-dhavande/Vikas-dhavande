@@ -44,10 +44,6 @@ const SocialMediaSection = dynamic(
   () => import("@/components/layout/SocialMediaSection").then((mod) => mod.SocialMediaSection),
   { loading: () => <div className="min-h-[200px] w-full animate-pulse bg-muted/10" /> }
 );
-const Footer = dynamic(
-  () => import("@/components/layout/Footer").then((mod) => mod.Footer),
-  { loading: () => <div className="min-h-[120px] w-full bg-background" /> }
-);
 
 // Enable Incremental Static Regeneration (ISR) for fast edge caching
 export const revalidate = 3600;
@@ -70,7 +66,6 @@ export default async function HomePage() {
         <BlogPreviewSection />
         <SocialMediaSection socials={portfolioData.socials} />
       </main>
-      <Footer />
     </div>
   );
 }
