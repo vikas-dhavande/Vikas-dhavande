@@ -51,17 +51,20 @@ export function AuthModal({ trigger, onAuthSuccess }: AuthModalProps) {
                   setIsOpen(false);
                 }}
                 onSuccess={(userName: string) => {
-                  // 1. Cache avatar seed in localStorage for instant client reads
+                  // 1. Cache avatar seed and auth indicator in localStorage
                   try {
                     localStorage.setItem("avatar_seed", userName);
+                    localStorage.setItem("auth_user", JSON.stringify({ name: userName }));
+                    document.cookie = "auth_user=1; path=/; max-age=2592000; SameSite=Lax";
                   } catch {}
 
-                  // 2. Persist to cookie for SSR (deferred to avoid render-cycle conflict)
+                  // 2. Persist to cookie for SSR
                   setTimeout(() => {
                     setCookiePreferenceAction("avatar_seed", userName).catch(() => {});
+                    setCookiePreferenceAction("auth_user", "1").catch(() => {});
                   }, 0);
 
-                  // 3. Notify parent to refresh navbar user state
+                  // 3. Notify parent to refresh user state
                   onAuthSuccess?.(userName);
 
                   // 4. Close the modal

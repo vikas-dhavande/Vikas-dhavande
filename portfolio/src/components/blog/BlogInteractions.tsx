@@ -11,7 +11,8 @@ import {
   Loader2,
   LogIn,
 } from "lucide-react";
-import { account } from "@/lib/appwrite";
+import { useAuth } from "@/lib/auth-context";
+import { AuthModal } from "@/components/ui/AuthModal";
 import {
   getBlogReactions,
   toggleBlogReaction,
@@ -19,7 +20,6 @@ import {
   addBlogComment,
 } from "@/lib/blog-service";
 import { BlogReaction, BlogComment } from "@/lib/blog-types";
-import { Models } from "appwrite";
 
 interface BlogInteractionsProps {
   slug: string;
@@ -27,7 +27,7 @@ interface BlogInteractionsProps {
 }
 
 export function BlogInteractions({ slug }: BlogInteractionsProps) {
-  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
+  const { user, isAuthLoading } = useAuth();
   const [reactions, setReactions] = useState<BlogReaction>({
     likes: 12,
     rockets: 5,
@@ -66,20 +66,6 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
     if (!inView) return;
     let active = true;
 
-    // Check logged in user
-    account
-      .get()
-      .then((currUser) => {
-        if (!active) return;
-        setUser(currUser);
-        loadData(currUser.$id);
-      })
-      .catch(() => {
-        if (!active) return;
-        setUser(null);
-        loadData();
-      });
-
     const loadData = async (userId?: string) => {
       const [r, c] = await Promise.all([
         getBlogReactions(slug, userId),
@@ -91,10 +77,12 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
       }
     };
 
+    loadData(user?.$id);
+
     return () => {
       active = false;
     };
-  }, [inView, slug]);
+  }, [inView, slug, user?.$id]);
 
   const handleReaction = async (type: "like" | "rocket" | "heart" | "idea") => {
     if (!user) {
@@ -220,11 +208,16 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
           </button>
         </div>
 
-        {!user && (
+        {isAuthLoading ? (
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground">Checking authorization…</span>
+          </div>
+        ) : !user ? (
           <p className="mt-3 text-[11px] text-muted-foreground text-center">
             Sign in as a Member to add your reaction.
           </p>
-        )}
+        ) : null}
       </div>
 
       {/* ── Comments Section ── */}
@@ -237,7 +230,15 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
         </div>
 
         {/* Comment Input */}
-        {user ? (
+        {isAuthLoading ? (
+          <div className="p-4 rounded-lg border border-border/60 bg-muted/20 animate-pulse space-y-2">
+            <div className="h-4 w-28 bg-muted/70 rounded" />
+            <div className="h-16 w-full bg-muted/40 rounded-lg" />
+            <div className="flex justify-end">
+              <div className="h-7 w-24 bg-muted/60 rounded-lg" />
+            </div>
+          </div>
+        ) : user ? (
           <form onSubmit={handleAddComment} className="space-y-2.5">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               <span className="font-semibold text-foreground">{user.name || user.email}</span>
@@ -256,7 +257,7 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
               <button
                 type="submit"
                 disabled={submittingComment || !newComment.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:opacity-90 disabled:opacity-40 transition-all"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
               >
                 {submittingComment ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -272,13 +273,17 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
             <p className="text-xs text-muted-foreground">
               Sign in as a Member to join the engineering discussion.
             </p>
-            <a
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              Sign In to Comment
-            </a>
+            <AuthModal
+              trigger={
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  Sign In to Comment
+                </button>
+              }
+            />
           </div>
         )}
 

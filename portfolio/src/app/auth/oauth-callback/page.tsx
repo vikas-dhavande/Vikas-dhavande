@@ -51,6 +51,16 @@ function OAuthCallbackContent() {
         setStatus("success");
         setMessage(`Welcome back, ${user.name || "User"}! Finalizing…`);
 
+        try {
+          localStorage.setItem(
+            "auth_user",
+            JSON.stringify({ $id: user.$id, name: user.name, email: user.email })
+          );
+          localStorage.setItem("avatar_seed", user.name || user.email.split("@")[0]);
+          document.cookie = "auth_user=1; path=/; max-age=2592000; SameSite=Lax";
+          window.dispatchEvent(new Event("appwrite-auth-changed"));
+        } catch {}
+
         notifyParent("APPWRITE_OAUTH_SUCCESS", {
           user: {
             $id: user.$id,

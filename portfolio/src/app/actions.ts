@@ -13,8 +13,8 @@ function isAuthorized(secret?: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-const ALLOWED_COOKIE_KEYS = new Set(["theme"]);
-const ALLOWED_THEME_VALUES = new Set(["light", "dark", "system", "cyberpunk"]);
+const ALLOWED_COOKIE_KEYS = new Set(["theme", "avatar_seed", "auth_user"]);
+const ALLOWED_THEME_VALUES = new Set(["light", "dark", "system", "cyberpunk", "looseleaf"]);
 
 export async function revalidateTagAction(tag: string, secret?: string) {
   if (!isAuthorized(secret)) {

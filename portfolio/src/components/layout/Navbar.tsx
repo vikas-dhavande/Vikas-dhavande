@@ -4,8 +4,7 @@ import React, { useState, useEffect, useRef, useTransition, useCallback } from "
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Blobatar } from "@blobatar/react";
-import { account } from "@/lib/appwrite";
-import { clearCookieAction } from "@/app/actions";
+import { useAuth } from "@/lib/auth-context";
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton";
 
 // Lazy-load AuthModal so authentication forms & react-aria-components are excluded from the initial critical bundle
@@ -177,18 +176,17 @@ interface NavbarProps {
 }
 
 export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarProps) {
-  const [user, setUser] = useState<AppwriteUser | null>(initialUser);
+  const {
+    user: authUser,
+    isAuthLoading,
+    avatarSeed: authAvatarSeed,
+    logout: authLogout,
+    refreshAuth,
+  } = useAuth();
 
-  // Avatar seed: cookie (SSR) > localStorage > null
-  const [avatarSeed, setAvatarSeed] = useState<string | null>(() => {
-    if (initialAvatarSeed) return initialAvatarSeed;
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("avatar_seed");
-    }
-    return null;
-  });
-
-  const [loading, setLoading] = useState(!initialUser);
+  const user = (authUser as unknown as AppwriteUser | null) || initialUser;
+  const avatarSeed = authAvatarSeed || initialAvatarSeed;
+  const loading = isAuthLoading && !initialUser;
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -302,95 +300,13 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
     setTimeout(() => setRefreshing(false), 800);
   };
 
-  useEffect(() => {
-    if (initialUser) {
-      setLoading(false);
-      return;
-    }
-
-    // Only query Appwrite if there is an existing session token/cookie/local cache
-    // to avoid logging 401 errors to the browser console for guest visitors
-    const hasCachedUser = typeof window !== "undefined" && !!localStorage.getItem("auth_user");
-    const hasAuthCookie = typeof document !== "undefined" && document.cookie.includes("auth_user");
-
-    if ((hasCachedUser || hasAuthCookie) && account && typeof account.get === "function") {
-      account
-        .get()
-        .then((u) => {
-          setUser(u as AppwriteUser);
-          // Sync avatar seed from localStorage if not already set via cookie
-          const stored = localStorage.getItem("avatar_seed");
-          if (stored && !avatarSeed) setAvatarSeed(stored);
-        })
-        .catch(() => setUser(null))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-
-    // Auto-sync session when tab receives focus (e.g. after popup or external auth)
-    const syncSession = () => {
-      account
-        .get()
-        .then((u) => {
-          setUser(u as AppwriteUser);
-          const stored = localStorage.getItem("avatar_seed");
-          if (stored) setAvatarSeed(stored);
-        })
-        .catch(() => setUser(null));
-    };
-
-    const handleFocus = () => {
-      const hasSession =
-        (typeof window !== "undefined" && !!localStorage.getItem("auth_user")) ||
-        (typeof document !== "undefined" && document.cookie.includes("auth_user"));
-      if (hasSession && account && typeof account.get === "function") {
-        syncSession();
-      }
-    };
-
-    const handleAuthChanged = () => syncSession();
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("appwrite-auth-changed", handleAuthChanged);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("appwrite-auth-changed", handleAuthChanged);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialUser]);
-
-  const refreshUser = () => {
-    if (account && typeof account.get === "function") {
-      account
-        .get()
-        .then((u) => setUser(u as AppwriteUser))
-        .catch(() => setUser(null));
-    }
-  };
-
-  const handleAuthSuccess = (userName: string) => {
-    setAvatarSeed(userName);
-    refreshUser();
+  const handleAuthSuccess = () => {
+    refreshAuth();
   };
 
   const handleLogout = () => {
     startTransition(async () => {
-      try {
-        if (account && typeof account.deleteSession === "function") {
-          await account.deleteSession("current");
-        }
-      } catch {}
-
-      try {
-        localStorage.removeItem("auth_user");
-        localStorage.removeItem("avatar_seed");
-      } catch {}
-
-      await clearCookieAction("auth_user");
-      await clearCookieAction("avatar_seed");
-
-      setUser(null);
-      setAvatarSeed(null);
+      await authLogout();
       setDropdownOpen(false);
     });
   };

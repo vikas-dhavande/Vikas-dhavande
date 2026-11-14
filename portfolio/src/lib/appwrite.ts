@@ -269,6 +269,42 @@ async function signInWithGoogle(): Promise<Models.User<Models.Preferences>> {
   return signInWithOAuthPopup("google");
 }
 
+/**
+ * Request password recovery email.
+ */
+async function sendPasswordRecovery(email: string, redirectUrl?: string): Promise<Models.Token> {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const target = redirectUrl || `${origin}/auth/recovery`;
+  return account.createRecovery(email, target);
+}
+
+/**
+ * Complete password recovery using secret and userId.
+ */
+async function completePasswordRecovery(
+  userId: string,
+  secret: string,
+  password: string
+): Promise<Models.Token> {
+  return account.updateRecovery(userId, secret, password);
+}
+
+/**
+ * Send email verification link to currently logged in user.
+ */
+async function sendEmailVerification(redirectUrl?: string): Promise<Models.Token> {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const target = redirectUrl || `${origin}/auth/verify`;
+  return account.createVerification(target);
+}
+
+/**
+ * Complete email verification.
+ */
+async function completeEmailVerification(userId: string, secret: string): Promise<Models.Token> {
+  return account.updateVerification(userId, secret);
+}
+
 export {
   client,
   account,
@@ -286,4 +322,8 @@ export {
   signInWithGithub,
   signInWithGoogle,
   signInWithOAuthPopup,
+  sendPasswordRecovery,
+  completePasswordRecovery,
+  sendEmailVerification,
+  completeEmailVerification,
 };

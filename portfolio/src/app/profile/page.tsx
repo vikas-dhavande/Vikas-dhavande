@@ -174,6 +174,7 @@ export default function ProfilePage() {
       await clearCookieAction("auth_user");
       await clearCookieAction("avatar_seed");
       setUser(null);
+      window.dispatchEvent(new Event("appwrite-auth-changed"));
       router.push("/");
     } catch (logoutError) {
       setError(logoutError instanceof Error ? logoutError.message : "Could not sign out.");

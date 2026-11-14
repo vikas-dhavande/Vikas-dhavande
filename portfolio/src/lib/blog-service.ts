@@ -1,4 +1,5 @@
-import { databases } from "@/lib/appwrite";
+import { databases, account } from "@/lib/appwrite";
+import { submitCommentServerAction } from "@/app/blog/comment-actions";
 import { BlogPost, BlogFilterOptions, BlogReaction, BlogComment } from "@/lib/blog-types";
 import defaultBlogPosts from "@/data/blog-data.json";
 import { Query, ID } from "appwrite";
@@ -468,6 +469,32 @@ export async function addBlogComment(
     content: string;
   }
 ): Promise<BlogComment> {
+  // 1. Try server action with authenticated JWT verification (C-03, C-07, C-08, C-09)
+  try {
+    const jwt = await account.createJWT();
+    if (jwt?.jwt) {
+      const serverComment = await submitCommentServerAction(jwt.jwt, slug, commentData.content);
+      if (typeof window !== "undefined") {
+        const existing = await getBlogComments(slug);
+        const updated = [serverComment, ...existing];
+        localStorage.setItem(`${COMMENTS_KEY_PREFIX}${slug}`, JSON.stringify(updated));
+      }
+      return serverComment;
+    }
+  } catch (err) {
+    // If error indicates unauthorized or rate limited, propagate immediately
+    if (
+      err instanceof Error &&
+      (err.message.includes("signed in") ||
+        err.message.includes("Rate limit") ||
+        err.message.includes("characters") ||
+        err.message.includes("Session expired"))
+    ) {
+      throw err;
+    }
+  }
+
+  // 2. Fallback to client SDK only if database is configured and server action was bypassed
   const newComment: BlogComment = {
     id: ID.unique(),
     postSlug: slug,

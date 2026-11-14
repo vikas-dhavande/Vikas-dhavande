@@ -3,6 +3,7 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AuthProvider } from "@/lib/auth-context";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { InitialWebLoader } from "@/components/ui/InitialWebLoader";
@@ -145,12 +146,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-primary/20 flex flex-col">
         <ThemeProvider initialTheme="light">
-          <InitialWebLoader />
-          <Navbar />
-          <div className="flex-1 flex flex-col">
-            {children}
-          </div>
-          <Footer />
+          <AuthProvider>
+            <InitialWebLoader />
+            <Navbar />
+            <div className="flex-1 flex flex-col">
+              {children}
+            </div>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
         <SpeedInsights />
         <Analytics />
