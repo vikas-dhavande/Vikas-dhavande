@@ -53,13 +53,13 @@ const navItems: MegaMenuItem[] = [
         links: [
           {
             label: "Experience",
-            href: "#experience",
+            href: "/#experience",
             description: "Roles and experience across my career.",
             icon: BriefcaseBusiness,
           },
           {
             label: "Education",
-            href: "#education",
+            href: "/#education",
             description: "Academic background and learning.",
             icon: GraduationCap,
           },
@@ -70,13 +70,13 @@ const navItems: MegaMenuItem[] = [
         links: [
           {
             label: "Skills",
-            href: "#skills",
+            href: "/#skills",
             description: "Technologies and skills I work with.",
             icon: Code2,
           },
           {
             label: "Certificates & Licenses",
-            href: "#certificates",
+            href: "/#certificates",
             description: "Professional certifications and licenses I hold.",
             icon: Award,
           },
@@ -93,7 +93,7 @@ const navItems: MegaMenuItem[] = [
         links: [
           {
             label: "Projects",
-            href: "#projects",
+            href: "/#projects",
             description: "A selection of projects and experiments.",
             icon: BriefcaseBusiness,
           },
@@ -133,7 +133,7 @@ const navItems: MegaMenuItem[] = [
         links: [
           {
             label: "Resources",
-            href: "#resources",
+            href: "/#resources",
             description: "Useful resources and recommendations.",
             icon: BookOpen,
           },
@@ -150,7 +150,7 @@ const navItems: MegaMenuItem[] = [
         links: [
           {
             label: "Social",
-            href: "#social",
+            href: "/#social",
             description: "Find me on social platforms.",
             icon: Users,
           },
