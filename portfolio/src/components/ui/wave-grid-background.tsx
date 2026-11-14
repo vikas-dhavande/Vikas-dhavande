@@ -520,7 +520,19 @@ export function WaveGridBackground({
       trailUniforms.uMaxHeight.value = p.waveMaxHeight;
       colorUniforms.uColorBase.value.set(p.colorBase);
       colorUniforms.uColorHigh.value.set(p.colorHigh);
-      scene.background = new THREE.Color(p.colorBase).multiplyScalar(0.5);
+
+      const baseColor = new THREE.Color(p.colorBase);
+      const luminance =
+        0.2126 * baseColor.r + 0.7152 * baseColor.g + 0.0722 * baseColor.b;
+      if (luminance > 0.5) {
+        scene.background = baseColor.clone();
+        material.shininess = 2;
+        material.specular.set("#111111");
+      } else {
+        scene.background = baseColor.clone().multiplyScalar(0.5);
+        material.shininess = 30;
+        material.specular.set("#555555");
+      }
 
       updateTrail(delta);
       lerpedMouse.x += (mouse.x - lerpedMouse.x) * 0.04;

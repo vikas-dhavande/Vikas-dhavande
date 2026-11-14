@@ -3,7 +3,7 @@
 import React, { useState, useCallback, memo, startTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   ChevronUp,
   Cpu,

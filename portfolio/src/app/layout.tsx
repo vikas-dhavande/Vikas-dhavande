@@ -1,7 +1,7 @@
 import "./app.css";
 import React from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Fira_Code, Caveat } from "next/font/google";
+import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -19,12 +19,6 @@ const inter = Inter({
 const firaCode = Fira_Code({
   subsets: ["latin"],
   variable: "--font-mono",
-  display: "swap",
-});
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-handwriting",
   display: "swap",
 });
 
@@ -135,11 +129,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={`light ${inter.variable} ${firaCode.variable} ${caveat.variable}`}
+      className={`light ${inter.variable} ${firaCode.variable}`}
       data-theme="light"
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&display=swap"
+          rel="stylesheet"
+        />
         {/* Blocking anti-flash script — runs synchronously before CSS render */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

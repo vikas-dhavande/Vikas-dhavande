@@ -75,6 +75,14 @@ const nextConfig = {
     },
   ],
   experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@phosphor-icons/react",
+      "@hugeicons/react",
+      "motion",
+      "recharts",
+      "three",
+    ],
     useCache: true,
     serverActions: {
       bodySizeLimit: "1mb",

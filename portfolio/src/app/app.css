@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -14,7 +15,7 @@ summary::-webkit-details-marker {
   --font-heading: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
   --font-sans: "Geist", "Geist Fallback", var(--font-sans), sans-serif;
   --font-mono: "Fira Code", monospace;
-  --font-handwriting: var(--font-handwriting), "Caveat", "Patrick Hand", cursive, sans-serif;
+  --font-handwriting: "Caveat", "Patrick Hand", "Comic Sans MS", "Chalkboard SE", "Segoe Print", cursive, sans-serif;
 
   /* Color Palette Mappings from DESIGN.md */
   --color-background: var(--background);
@@ -232,7 +233,7 @@ html:not(.dark):not(.cyberpunk) {
 
 [data-theme="looseleaf"] body {
   background-color: var(--background);
-  background-image: 
+  background-image:
     linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -244,6 +245,64 @@ html:not(.dark):not(.cyberpunk) {
   border-color: #2d2a26;
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   box-shadow: 3px 3px 0px 0px #1c1917;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-theme="looseleaf"] .bg-card:hover,
+[data-theme="looseleaf"] [data-slot="card"]:hover {
+  transform: rotate(-0.4deg) translateY(-2px);
+  box-shadow: 4px 5px 0px 0px #1c1917;
+}
+
+[data-theme="looseleaf"] header {
+  background-color: #fbf9f3 !important;
+  border-bottom: 2px solid #2d2a26 !important;
+  backdrop-filter: none !important;
+}
+
+/* Explicit Handwriting Typography Rules for Looseleaf Theme */
+[data-theme="looseleaf"],
+[data-theme="looseleaf"] body,
+[data-theme="looseleaf"] .font-sans,
+[data-theme="looseleaf"] h1,
+[data-theme="looseleaf"] h2,
+[data-theme="looseleaf"] h3,
+[data-theme="looseleaf"] h4,
+[data-theme="looseleaf"] h5,
+[data-theme="looseleaf"] h6,
+[data-theme="looseleaf"] p,
+[data-theme="looseleaf"] a,
+[data-theme="looseleaf"] button,
+[data-theme="looseleaf"] input,
+[data-theme="looseleaf"] textarea,
+[data-theme="looseleaf"] label,
+[data-theme="looseleaf"] li,
+[data-theme="looseleaf"] span:not([class*="font-mono"]) {
+  font-family: "Caveat", "Patrick Hand", "Comic Sans MS", "Chalkboard SE", "Segoe Print", cursive, sans-serif !important;
+}
+
+[data-theme="looseleaf"] h1,
+[data-theme="looseleaf"] h2,
+[data-theme="looseleaf"] h3,
+[data-theme="looseleaf"] h4,
+[data-theme="looseleaf"] h5,
+[data-theme="looseleaf"] h6 {
+  letter-spacing: 0.02em !important;
+}
+
+/* Ensure code blocks, numbers and monospace remain crisp Fira Code */
+[data-theme="looseleaf"] pre,
+[data-theme="looseleaf"] code,
+[data-theme="looseleaf"] kbd,
+[data-theme="looseleaf"] .font-mono,
+[data-theme="looseleaf"] [class*="font-mono"],
+[data-theme="looseleaf"] [class*="font-mono"] * {
+  font-family: var(--font-mono, "Fira Code", monospace) !important;
+}
+
+[data-theme="looseleaf"] .looseleaf-margin {
+  border-left: 2px solid rgba(239, 68, 68, 0.22);
+  padding-left: 1rem;
 }
 
 [data-theme="looseleaf"] button:not([class*="rounded-full"]),
