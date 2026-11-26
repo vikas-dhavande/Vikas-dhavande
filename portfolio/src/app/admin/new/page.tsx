@@ -14,6 +14,11 @@ import { AdminGate } from "@/components/admin/AdminGate";
 import { Editor } from "@/components/admin/Editor";
 import { createBlogPost } from "@/lib/blog-service";
 import { slugify, uploadBlogImage } from "@/lib/appwrite";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 const CATEGORIES = [
   "Aerospace Avionics",
@@ -94,6 +99,18 @@ function NewPostForm() {
         publishedAt: new Date().toISOString(),
       });
 
+      if (hasPostHogConfiguration) {
+        const logAttributes = {
+          event: "article_created",
+          status,
+          category,
+          tag_count: tags.length,
+          read_time_minutes: Number(readTimeMinutes) || 5,
+          has_cover_image: Boolean(coverImage),
+        };
+        posthog.capture("article_created", logAttributes);
+        posthog.logger.info("article created", logAttributes);
+      }
       router.push("/admin");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create publication. Check Appwrite database permissions.");

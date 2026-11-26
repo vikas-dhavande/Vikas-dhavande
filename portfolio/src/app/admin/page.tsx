@@ -18,6 +18,11 @@ import {
 import { AdminGate } from "@/components/admin/AdminGate";
 import { getBlogPosts, deleteBlogPost } from "@/lib/blog-service";
 import { BlogPost } from "@/lib/blog-types";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 function AdminDashboardContent() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -55,6 +60,9 @@ function AdminDashboardContent() {
     try {
       await deleteBlogPost(post.$id);
       setPosts((prev) => prev.filter((p) => p.$id !== post.$id));
+      if (hasPostHogConfiguration) {
+        posthog.capture("article_deleted", { source: "manager" });
+      }
     } catch (err: unknown) {
       alert(`Delete failed: ${err instanceof Error ? err.message : "Please check Appwrite database permissions."}`);
     } finally {
