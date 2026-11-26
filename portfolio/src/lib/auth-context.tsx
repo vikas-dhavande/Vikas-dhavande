@@ -7,7 +7,9 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
 } from "react";
+import posthog from "posthog-js";
 import { account, checkUserRole, UserRoleInfo } from "@/lib/appwrite";
 import { Models } from "appwrite";
 
@@ -35,6 +37,9 @@ const AuthContext = createContext<AuthContextType>({
 
 const AUTH_COOKIE_NAME = "auth_user";
 const AVATAR_COOKIE_NAME = "avatar_seed";
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 function persistAuthIndicators(user: Models.User<Models.Preferences> | null) {
   if (typeof window === "undefined") return;
@@ -70,11 +75,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [avatarSeed, setAvatarSeed] = useState<string>("");
+  const identifiedUserIdRef = useRef<string | null>(null);
 
   const syncAuth = useCallback(async (broadcast = true) => {
     try {
       const currentUser = await account.get();
       const currentRole = await checkUserRole(currentUser);
+
+      if (hasPostHogConfiguration && identifiedUserIdRef.current !== currentUser.$id) {
+        if (identifiedUserIdRef.current) {
+          posthog.reset();
+        }
+
+        posthog.identify(currentUser.$id, {
+          email: currentUser.email,
+          name: currentUser.name,
+          role: currentRole.role,
+        });
+        identifiedUserIdRef.current = currentUser.$id;
+      }
 
       setUser(currentUser);
       setRoleInfo(currentRole);
@@ -90,6 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
     } catch {
+      if (hasPostHogConfiguration && identifiedUserIdRef.current) {
+        posthog.reset();
+        identifiedUserIdRef.current = null;
+      }
+
       setUser(null);
       setRoleInfo({ isAdmin: false, role: "guest", user: null });
       setAvatarSeed("");
@@ -169,6 +193,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Even if network or session is already gone, proceed with client cleanup
     } finally {
+      if (hasPostHogConfiguration && identifiedUserIdRef.current) {
+        posthog.reset();
+        identifiedUserIdRef.current = null;
+      }
+
       setUser(null);
       setRoleInfo({ isAdmin: false, role: "guest", user: null });
       setAvatarSeed("");

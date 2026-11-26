@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import type { BlogLink } from "@/lib/blog-types";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 type SearchItem = {
   href: string;
@@ -160,6 +165,12 @@ export function BlogCommandSearch({
   }, []);
 
   const openPost = (href: string) => {
+    if (hasPostHogConfiguration) {
+      posthog.capture("blog_search_result_selected", {
+        query_length: query.trim().length,
+        result_count: filtered.length,
+      });
+    }
     setOpen(false);
     setQuery("");
     startTransition(() => {

@@ -22,6 +22,11 @@ import {
   uploadProfileImageAction,
 } from "@/app/profile/profile-actions";
 import { Models } from "appwrite";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 type ProfilePreferences = Models.Preferences & {
   profileImageFileId?: string;
@@ -127,6 +132,9 @@ export default function ProfilePage() {
       await refreshUser();
       setPassword("");
       setNotice(`${field === "name" ? "Name" : field === "email" ? "Email" : "Phone number"} updated.`);
+      if (hasPostHogConfiguration) {
+        posthog.capture("profile_field_updated", { field });
+      }
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not update your profile.");
     } finally {
@@ -153,6 +161,9 @@ export default function ProfilePage() {
       await refreshUser();
       setSelectedImage(null);
       setNotice("Profile image updated.");
+      if (hasPostHogConfiguration) {
+        posthog.capture("profile_image_uploaded");
+      }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Could not upload your image.");
     } finally {

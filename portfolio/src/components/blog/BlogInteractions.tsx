@@ -20,6 +20,11 @@ import {
   addBlogComment,
 } from "@/lib/blog-service";
 import { BlogReaction, BlogComment } from "@/lib/blog-types";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 interface BlogInteractionsProps {
   slug: string;
@@ -94,6 +99,18 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
     try {
       const updated = await toggleBlogReaction(slug, type, user.$id);
       setReactions(updated);
+      if (hasPostHogConfiguration) {
+        const action = updated.userReactions?.includes(type) ? "added" : "removed";
+        posthog.capture("blog_reaction_updated", {
+          reaction_type: type,
+          action,
+        });
+        posthog.logger.info("blog reaction updated", {
+          event: "blog_reaction_updated",
+          reaction_type: type,
+          action,
+        });
+      }
     } catch (err: unknown) {
       console.error("Reaction failed:", err);
     } finally {
@@ -119,6 +136,13 @@ export function BlogInteractions({ slug }: BlogInteractionsProps) {
       });
       setComments((prev) => [added, ...prev]);
       setNewComment("");
+      if (hasPostHogConfiguration) {
+        posthog.capture("blog_comment_submitted");
+        posthog.logger.info("blog comment submitted", {
+          event: "blog_comment_submitted",
+          comment_length: added.content.length,
+        });
+      }
     } catch (err: unknown) {
       alert(`Comment submission failed: ${err instanceof Error ? err.message : "Please try again."}`);
     } finally {

@@ -27,6 +27,11 @@ import {
   account,
 } from "@/lib/appwrite";
 import { useAuth } from "@/lib/auth-context";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 interface LoginFormProps {
   onSuccess: (userName: string) => void;
@@ -53,7 +58,11 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
     setNotice(null);
   };
 
-  const handleAuthSuccess = async (authUser: { name?: string; email?: string }) => {
+  const handleAuthSuccess = async (
+    authUser: { name?: string; email?: string },
+    authMethod: "email" | "github" | "google",
+    authFlow: "sign_in" | "sign_up"
+  ) => {
     try {
       const fullUser = await account.get();
       setUserOptimistic(fullUser);
@@ -61,6 +70,12 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
       // Fallback optimistic object
     }
     await refreshAuth();
+    if (hasPostHogConfiguration) {
+      posthog.capture("user_authenticated", {
+        auth_method: authMethod,
+        auth_flow: authFlow,
+      });
+    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("appwrite-auth-changed"));
     }
@@ -144,7 +159,7 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
       }
 
       const user = await account.get();
-      await handleAuthSuccess(user);
+      await handleAuthSuccess(user, "email", mode === "signup" ? "sign_up" : "sign_in");
     } catch (err: unknown) {
       const rawMsg = err instanceof Error ? err.message : "";
       // Normalize credential error to prevent user enumeration (L-02, L-03)
@@ -167,7 +182,7 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
     setOauthLoading("github");
     try {
       const user = await signInWithGithub();
-      await handleAuthSuccess(user);
+      await handleAuthSuccess(user, "github", "sign_in");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "GitHub authentication failed.";
       setError(msg);
@@ -183,7 +198,7 @@ const LoginForm = ({ onSuccess, onClose }: LoginFormProps) => {
     setOauthLoading("google");
     try {
       const user = await signInWithGoogle();
-      await handleAuthSuccess(user);
+      await handleAuthSuccess(user, "google", "sign_in");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google authentication failed.";
       setError(msg);

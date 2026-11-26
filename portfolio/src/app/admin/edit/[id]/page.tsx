@@ -15,6 +15,11 @@ import { AdminGate } from "@/components/admin/AdminGate";
 import { Editor } from "@/components/admin/Editor";
 import { getBlogPosts, updateBlogPost, deleteBlogPost } from "@/lib/blog-service";
 import { uploadBlogImage } from "@/lib/appwrite";
+import posthog from "posthog-js";
+
+const hasPostHogConfiguration = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST
+);
 
 const CATEGORIES = [
   "Aerospace Avionics",
@@ -118,6 +123,15 @@ function EditPostForm({ postId }: { postId: string }) {
         readTimeMinutes: Number(readTimeMinutes) || 5,
       });
 
+      if (hasPostHogConfiguration) {
+        posthog.capture("article_updated", {
+          status: targetStatus,
+          category,
+          tag_count: tags.length,
+          read_time_minutes: Number(readTimeMinutes) || 5,
+          has_cover_image: Boolean(coverImage),
+        });
+      }
       router.push("/admin");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update publication.");
@@ -134,6 +148,9 @@ function EditPostForm({ postId }: { postId: string }) {
     setDeleting(true);
     try {
       await deleteBlogPost(databaseId);
+      if (hasPostHogConfiguration) {
+        posthog.capture("article_deleted", { source: "editor" });
+      }
       router.push("/admin");
     } catch (err: unknown) {
       alert(`Delete failed: ${err instanceof Error ? err.message : "Unknown error"}`);
