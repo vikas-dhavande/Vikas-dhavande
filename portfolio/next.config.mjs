@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const posthogAssetsHost = posthogHost?.replace(".i.", "-assets.i.");
 const contentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com;
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com${posthogAssetsHost ? ` ${posthogAssetsHost}` : ""};
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' data: blob: https://*.appwrite.io https://cloud.appwrite.io https://avatars.githubusercontent.com https://images.unsplash.com;
   font-src 'self' data: https://fonts.gstatic.com;
-  connect-src 'self' https://*.appwrite.io https://*.cloud.appwrite.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com;
+  connect-src 'self' https://*.appwrite.io https://*.cloud.appwrite.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com${posthogHost ? ` ${posthogHost}` : ""};
+  worker-src 'self' blob:;
   media-src 'self' https:;
   object-src 'none';
   base-uri 'self';
