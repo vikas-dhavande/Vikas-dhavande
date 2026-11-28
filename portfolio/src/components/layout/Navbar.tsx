@@ -99,7 +99,7 @@ const navItems: MegaMenuItem[] = [
           },
           {
             label: "Blog",
-            href: "/blog",
+            href: "https://hashnode.com/@vikas-dhavande",
             description: "Articles, notes, and ideas.",
             icon: BookOpen,
           },
@@ -173,6 +173,35 @@ interface AppwriteUser {
 interface NavbarProps {
   initialUser?: AppwriteUser | null;
   initialAvatarSeed?: string | null;
+}
+
+interface PortfolioNavLinkProps {
+  href: string;
+  className: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+/** Open external navigation links in a new tab while keeping internal portfolio routes on Next `<Link>`. */
+function PortfolioNavLink({ href, className, onClick, children }: PortfolioNavLinkProps) {
+  if (/^https?:\/\//i.test(href)) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} onClick={onClick} className={className}>
+      {children}
+    </Link>
+  );
 }
 
 export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarProps) {
@@ -413,9 +442,8 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                                 const Icon = link.icon;
                                 return (
                                   <li key={link.href}>
-                                    <Link
+                                    <PortfolioNavLink
                                       href={link.href}
-                                      prefetch={link.href.startsWith("/blog") ? false : undefined}
                                       onClick={closeNow}
                                       className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     >
@@ -434,7 +462,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                                           </span>
                                         ) : null}
                                       </span>
-                                    </Link>
+                                    </PortfolioNavLink>
                                   </li>
                                 );
                               })}
@@ -642,10 +670,9 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                       {group.links.map((link) => {
                         const Icon = link.icon;
                         return (
-                          <Link
+                          <PortfolioNavLink
                             key={link.href}
                             href={link.href}
-                            prefetch={link.href.startsWith("/blog") ? false : undefined}
                             onClick={() => {
                               setMobileMenuOpen(false);
                               setOpenMobileSection(null);
@@ -665,7 +692,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                                 </span>
                               ) : null}
                             </span>
-                          </Link>
+                          </PortfolioNavLink>
                         );
                       })}
                     </div>

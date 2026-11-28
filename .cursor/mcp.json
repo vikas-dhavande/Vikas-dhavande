@@ -11,9 +11,6 @@
     "alphavantage": {
       "type": "streamable-http",
       "url": "https://mcp.alphavantage.co/mcp?apikey=${ALPHAVANTAGE_API_KEY}"
-    },
-    "hashnode": {
-      "url": "https://mcp.hashnode.com/mcp"
     }
   }
 }

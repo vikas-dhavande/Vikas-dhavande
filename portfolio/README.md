@@ -12,7 +12,6 @@ portfolio/
 ├── src/
 │   ├── app/                # Next.js App Router pages, layouts, and API routes
 │   ├── components/
-│   │   ├── blog/           # Components used by blog pages
 │   │   ├── layout/         # Homepage sections and site-wide layout
 │   │   ├── shadcn-space/   # Reusable composed blocks and animations
 │   │   └── ui/             # Reusable interface primitives
@@ -30,10 +29,9 @@ portfolio/
 - **Pages and endpoints:** add route entry points under `src/app/`. A folder
   becomes a URL segment when it contains a `page.tsx` or `route.ts` file.
 - **Homepage sections and shared site layout:** use `src/components/layout/`.
-- **Blog-specific presentation:** use `src/components/blog/`.
 - **Reusable UI primitives:** use `src/components/ui/`; composed blocks and
   animations belong in `src/components/shadcn-space/`.
-- **Portfolio and blog seed content:** update the JSON files in `src/data/`.
+- **Portfolio seed content:** update the JSON files in `src/data/`.
 - **Data access and shared logic:** use `src/lib/`; keep data types alongside
   their domain service.
 - **Static images, icons, and fonts:** put files in `public/` and reference them
@@ -44,22 +42,15 @@ portfolio/
 The home page (`src/app/page.tsx`) loads portfolio content through
 `src/lib/portfolio-service.ts` and passes it to the relevant page sections.
 That service uses local portfolio JSON by default and can use Appwrite when its
-portfolio database and collection IDs are configured.
-
-Blog routes are under `src/app/blog/`. Blog pages use
-`src/lib/blog-service.ts` and `src/lib/blog-server.ts`, which reads from Appwrite when configured and falls
-back to local blog markdown files and JSON. Shared Appwrite client setup lives in
-`src/lib/appwrite.ts`.
+portfolio database and collection IDs are configured. Shared Appwrite client
+setup lives in `src/lib/appwrite.ts`.
 
 ## Routes
 
 | URL | Entry point |
 | --- | --- |
 | `/` | `src/app/page.tsx` |
-| `/blog` | `src/app/blog/page.tsx` |
-| `/blog/[...slug]` | `src/app/blog/[...slug]/page.tsx` |
-| `/blog/for-ai/[...slug]` | `src/app/blog/for-ai/[...slug]/route.ts` |
-| `/admin` | `src/app/admin/page.tsx` |
+| `/tools` | `src/app/tools/page.tsx` |
 | `/dashboard` | `src/app/dashboard/page.tsx` |
 | `/profile` | `src/app/profile/page.tsx` |
 | `/auth/oauth-callback` | `src/app/auth/oauth-callback/page.tsx` |
@@ -74,9 +65,8 @@ pnpm install
 pnpm dev
 ```
 
-Create `.env.local` from `.env.example` to configure Appwrite. Blog database
-settings are optional; without them the local blog data is used. Portfolio
-database settings are also optional. Variables prefixed with `NEXT_PUBLIC_`
+Create `.env.local` from `.env.example` to configure Appwrite. Portfolio
+database settings are optional. Variables prefixed with `NEXT_PUBLIC_`
 are exposed to the browser and must not contain secrets.
 
 The `/profile` page requires an Appwrite account session. To enable profile
