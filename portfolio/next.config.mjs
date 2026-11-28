@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+const rawHashnodeBlogUrl = process.env.HASHNODE_BLOG_URL?.trim();
+const hashnodeBlogOrigin =
+  rawHashnodeBlogUrl && /^https?:\/\//i.test(rawHashnodeBlogUrl)
+    ? rawHashnodeBlogUrl.replace(/\/+$/, "").replace(/\/blog$/i, "")
+    : "";
+
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 const posthogAssetsHost = posthogHost?.replace(".i.", "-assets.i.");
 const contentSecurityPolicy = `
@@ -41,9 +47,24 @@ const nextConfig = {
       },
     ],
   },
+  rewrites: async () => {
+    if (!hashnodeBlogOrigin) {
+      return [];
+    }
+    return [
+      {
+        source: "/blog",
+        destination: `${hashnodeBlogOrigin}/blog`,
+      },
+      {
+        source: "/blog/:path*",
+        destination: `${hashnodeBlogOrigin}/blog/:path*`,
+      },
+    ];
+  },
   headers: async () => [
     {
-      source: "/:all*(svg|jpg|png|webp|avif|ico|woff2)",
+      source: "/:all((?!blog(?:/|$)).*\\.(?:svg|jpg|png|webp|avif|ico|woff2))",
       headers: [
         {
           key: "Cache-Control",
@@ -52,7 +73,7 @@ const nextConfig = {
       ],
     },
     {
-      source: "/:path*",
+      source: "/:path((?!blog(?:/|$)).*)",
       headers: [
         {
           key: "Content-Security-Policy",
