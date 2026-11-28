@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
-import { clearBlogCache } from "@/lib/blog-server";
 import crypto from "node:crypto";
 import { emitServerLog, SeverityNumber } from "@/lib/server-logger";
 
@@ -60,7 +59,6 @@ export async function POST(req: NextRequest) {
 
   const startTime = Date.now();
   try {
-    clearBlogCache();
     revalidatePath("/", "layout");
     const duration = Date.now() - startTime;
 

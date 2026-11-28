@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/blog/for-ai/", "/api/"],
+        disallow: ["/api/"],
       },
     ],
   };

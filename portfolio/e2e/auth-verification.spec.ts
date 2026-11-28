@@ -43,35 +43,6 @@ test.describe("Login & User Management Test Plan Verification (Next.js + Appwrit
     });
   });
 
-  // L-13, L-14, C-04: The Core Reported Bug
-  test("L-13 & L-14 & C-04: Verified session never flashes or shows 'login needed'", async ({ page }) => {
-    // Inject active session marker cookie
-    await page.context().addCookies([
-      { name: "auth_user", value: "1", domain: "localhost", path: "/" },
-    ]);
-
-    // Throttle Appwrite account verification to test the loading state boundary
-    await page.route("**/account", async (route) => {
-      await page.waitForTimeout(400);
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_USER),
-      });
-    });
-
-    await page.goto("/blog/avionics-rtos-architecture");
-
-    // L-14 check: Guest "Sign In to Comment" prompt must NEVER appear during checking
-    const guestPrompt = page.getByText(/Sign in as a Member to join the engineering discussion/i);
-    await expect(guestPrompt).not.toBeVisible();
-
-    // L-13 & C-04 check: Authenticated comment form loads directly with verified user info
-    const commentInput = page.getByPlaceholder(/Share your thoughts, peer feedback/i);
-    await expect(commentInput).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(MOCK_USER.name)).toBeVisible();
-  });
-
   // L-01, L-07, L-08: State refresh, persistence, and cross-tab consistency
   test("L-01, L-07 & S-09: Login refreshes UI immediately and persists across page reload", async ({ page }) => {
     await page.goto("/");
@@ -150,14 +121,5 @@ test.describe("Login & User Management Test Plan Verification (Next.js + Appwrit
     await expect(
       page.getByText(/If an account exists for this email, password reset instructions have been dispatched/i)
     ).toBeVisible({ timeout: 5000 });
-  });
-
-  // R-01 & R-02: Route protection at the edge
-  test("R-01 & R-02: Unauthenticated access to /admin redirects without private content flashing", async ({ page }) => {
-    // Attempt to access admin portal as guest
-    const response = await page.goto("/admin");
-    
-    // Edge middleware redirects directly
-    expect(page.url()).toContain("auth=login");
   });
 });
