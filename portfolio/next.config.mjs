@@ -77,6 +77,18 @@ const nextConfig = {
       ],
     },
   ],
+  redirects: async () => [
+    {
+      source: "/blog",
+      destination: "https://hashnode.com/@vikas-dhavande",
+      permanent: false,
+    },
+    {
+      source: "/blog/:path*",
+      destination: "https://hashnode.com/@vikas-dhavande",
+      permanent: false,
+    },
+  ],
   experimental: {
     optimizePackageImports: [
       "lucide-react",
