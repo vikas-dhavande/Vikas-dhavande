@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   CircleUserRound,
   Clock3,
-  FileEdit,
   Mail,
   Phone,
   ShieldCheck,
@@ -216,15 +215,6 @@ export default function DashboardPage() {
                   <p className="mt-1 truncate text-sm text-muted-foreground">{user.email}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                  {userRole === "admin" && (
-                    <Link
-                      href="/admin"
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-purple-500/40 bg-purple-500/10 px-4 text-sm font-semibold text-purple-600 dark:text-purple-300 transition-colors hover:bg-purple-500/20"
-                    >
-                      <FileEdit className="size-4" />
-                      Blog Manager
-                    </Link>
-                  )}
                   <Link
                     href="/profile"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"

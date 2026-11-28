@@ -415,6 +415,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                                   <li key={link.href}>
                                     <Link
                                       href={link.href}
+                                      prefetch={link.href.startsWith("/blog") ? false : undefined}
                                       onClick={closeNow}
                                       className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     >
@@ -644,6 +645,7 @@ export function Navbar({ initialUser = null, initialAvatarSeed = null }: NavbarP
                           <Link
                             key={link.href}
                             href={link.href}
+                            prefetch={link.href.startsWith("/blog") ? false : undefined}
                             onClick={() => {
                               setMobileMenuOpen(false);
                               setOpenMobileSection(null);

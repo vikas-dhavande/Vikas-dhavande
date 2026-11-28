@@ -32,10 +32,6 @@ const ResourcesSection = dynamic(
   () => import("@/components/layout/ResourcesSection").then((mod) => mod.ResourcesSection),
   { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
 );
-const BlogPreviewSection = dynamic(
-  () => import("@/components/layout/BlogPreviewSection").then((mod) => mod.BlogPreviewSection),
-  { loading: () => <div className="min-h-[300px] w-full animate-pulse bg-muted/10" /> }
-);
 const SocialMediaSection = dynamic(
   () => import("@/components/layout/SocialMediaSection").then((mod) => mod.SocialMediaSection),
   { loading: () => <div className="min-h-[200px] w-full animate-pulse bg-muted/10" /> }
@@ -58,7 +54,6 @@ export default async function HomePage() {
         <SkillsSection categories={portfolioData.skillCategories} />
         <ProjectsSection projects={portfolioData.projects} />
         <ResourcesSection resources={portfolioData.resources} />
-        <BlogPreviewSection />
         <SocialMediaSection socials={portfolioData.socials} />
       </main>
     </div>

@@ -1,11 +1,20 @@
 /** @type {import('next').NextConfig} */
+const rawHashnodeBlogUrl = process.env.HASHNODE_BLOG_URL?.trim();
+const hashnodeBlogOrigin =
+  rawHashnodeBlogUrl && /^https?:\/\//i.test(rawHashnodeBlogUrl)
+    ? rawHashnodeBlogUrl.replace(/\/+$/, "").replace(/\/blog$/i, "")
+    : "";
+
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const posthogAssetsHost = posthogHost?.replace(".i.", "-assets.i.");
 const contentSecurityPolicy = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com;
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://www.googletagmanager.com${posthogAssetsHost ? ` ${posthogAssetsHost}` : ""};
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' data: blob: https://*.appwrite.io https://cloud.appwrite.io https://avatars.githubusercontent.com https://images.unsplash.com;
   font-src 'self' data: https://fonts.gstatic.com;
-  connect-src 'self' https://*.appwrite.io https://*.cloud.appwrite.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com;
+  connect-src 'self' https://*.appwrite.io https://*.cloud.appwrite.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com${posthogHost ? ` ${posthogHost}` : ""};
+  worker-src 'self' blob:;
   media-src 'self' https:;
   object-src 'none';
   base-uri 'self';
@@ -38,9 +47,24 @@ const nextConfig = {
       },
     ],
   },
+  rewrites: async () => {
+    if (!hashnodeBlogOrigin) {
+      return [];
+    }
+    return [
+      {
+        source: "/blog",
+        destination: `${hashnodeBlogOrigin}/blog`,
+      },
+      {
+        source: "/blog/:path*",
+        destination: `${hashnodeBlogOrigin}/blog/:path*`,
+      },
+    ];
+  },
   headers: async () => [
     {
-      source: "/:all*(svg|jpg|png|webp|avif|ico|woff2)",
+      source: "/:all((?!blog(?:/|$)).*\\.(?:svg|jpg|png|webp|avif|ico|woff2))",
       headers: [
         {
           key: "Cache-Control",
@@ -49,7 +73,7 @@ const nextConfig = {
       ],
     },
     {
-      source: "/:path*",
+      source: "/:path((?!blog(?:/|$)).*)",
       headers: [
         {
           key: "Content-Security-Policy",
