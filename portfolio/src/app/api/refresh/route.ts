@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { clearBlogCache } from "@/lib/blog-server";
 import crypto from "node:crypto";
+import { emitServerLog, SeverityNumber } from "@/lib/server-logger";
 
 function timingSafeEqualStr(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
@@ -25,6 +26,11 @@ export async function POST(req: NextRequest) {
     console.error(
       `[AUDIT] ${timestamp} - Revalidation rejected: REVALIDATE_SECRET is unconfigured. IP=${clientIp}`
     );
+    emitServerLog("Revalidation rejected: REVALIDATE_SECRET is unconfigured", SeverityNumber.ERROR, {
+      endpoint: "/api/refresh",
+      method: "POST",
+      clientIp,
+    });
     return NextResponse.json(
       { error: "Revalidation endpoint disabled (REVALIDATE_SECRET not configured)" },
       { status: 503 }
@@ -43,6 +49,12 @@ export async function POST(req: NextRequest) {
     console.warn(
       `[AUDIT] ${timestamp} - Unauthorized revalidation attempt from IP=${clientIp}, UA="${userAgent}"`
     );
+    emitServerLog("Unauthorized cache revalidation attempt", SeverityNumber.WARN, {
+      endpoint: "/api/refresh",
+      method: "POST",
+      clientIp,
+      userAgent,
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -55,6 +67,12 @@ export async function POST(req: NextRequest) {
     console.info(
       `[AUDIT] ${timestamp} - Cache revalidation successful. Duration=${duration}ms, IP=${clientIp}`
     );
+    emitServerLog("Portfolio cache revalidation succeeded", SeverityNumber.INFO, {
+      endpoint: "/api/refresh",
+      method: "POST",
+      clientIp,
+      durationMs: duration,
+    });
 
     return NextResponse.json({
       success: true,
@@ -68,6 +86,12 @@ export async function POST(req: NextRequest) {
       `[AUDIT] ${timestamp} - Cache revalidation failed with error:`,
       error
     );
+    emitServerLog("Portfolio cache revalidation failed", SeverityNumber.ERROR, {
+      endpoint: "/api/refresh",
+      method: "POST",
+      clientIp,
+      error: error instanceof Error ? error.message : "Refresh failed",
+    });
     return NextResponse.json(
       {
         success: false,

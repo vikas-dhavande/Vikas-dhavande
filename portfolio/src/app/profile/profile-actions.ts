@@ -2,6 +2,7 @@
 
 import { Account, Client, ID, Permission, Role, Storage } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
+import { emitServerLog, SeverityNumber } from "@/lib/server-logger";
 
 type ProfilePreferences = {
   profileImageFileId?: string;
@@ -40,6 +41,10 @@ export async function updateProfileFieldAction(
       throw new Error("Name must be between 1 and 128 characters.");
     }
     await account.updateName(normalizedValue);
+    emitServerLog("Profile field updated", SeverityNumber.INFO, {
+      action: "updateProfileFieldAction",
+      field,
+    });
     return;
   }
 
@@ -52,6 +57,10 @@ export async function updateProfileFieldAction(
       throw new Error("Enter a valid email address.");
     }
     await account.updateEmail(normalizedValue, password);
+    emitServerLog("Profile field updated", SeverityNumber.INFO, {
+      action: "updateProfileFieldAction",
+      field,
+    });
     return;
   }
 
@@ -60,6 +69,10 @@ export async function updateProfileFieldAction(
     throw new Error("Enter a valid phone number, including the country code.");
   }
   await account.updatePhone(normalizedPhone, password);
+  emitServerLog("Profile field updated", SeverityNumber.INFO, {
+    action: "updateProfileFieldAction",
+    field,
+  });
 }
 
 export async function uploadProfileImageAction(formData: FormData) {
@@ -134,6 +147,11 @@ export async function uploadProfileImageAction(formData: FormData) {
   try {
     await account.updatePrefs<ProfilePreferences>({ profileImageFileId: file.$id });
   } catch (error) {
+    emitServerLog("Profile image preference update failed", SeverityNumber.ERROR, {
+      action: "uploadProfileImageAction",
+      fileId: file.$id,
+      error: error instanceof Error ? error.message : "Failed to update profile preferences",
+    });
     try {
       await storage.deleteFile(bucketId, file.$id);
     } catch (cleanupError) {
@@ -141,6 +159,11 @@ export async function uploadProfileImageAction(formData: FormData) {
     }
     throw error;
   }
+
+  emitServerLog("Profile image uploaded", SeverityNumber.INFO, {
+    action: "uploadProfileImageAction",
+    fileId: file.$id,
+  });
 
   return { fileId: file.$id };
 }

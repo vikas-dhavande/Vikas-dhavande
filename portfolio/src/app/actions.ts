@@ -3,6 +3,7 @@
 import { revalidateTag, revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import crypto from "node:crypto";
+import { emitServerLog, SeverityNumber } from "@/lib/server-logger";
 
 function isAuthorized(secret?: string): boolean {
   const serverSecret = process.env.REVALIDATE_SECRET;
@@ -18,33 +19,61 @@ const ALLOWED_THEME_VALUES = new Set(["light", "dark", "system", "cyberpunk", "l
 
 export async function revalidateTagAction(tag: string, secret?: string) {
   if (!isAuthorized(secret)) {
+    emitServerLog("Unauthorized tag revalidation attempt", SeverityNumber.WARN, {
+      action: "revalidateTagAction",
+      tag,
+    });
     return { success: false, message: "Unauthorized: Invalid revalidation token" };
   }
   try {
     revalidateTag(tag);
+    emitServerLog("Tag revalidated", SeverityNumber.INFO, {
+      action: "revalidateTagAction",
+      tag,
+    });
     return {
       success: true,
       message: `Successfully revalidated tag: "${tag}"`,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    return { success: false, message: (error as Error).message };
+    const message = (error as Error).message;
+    emitServerLog("Tag revalidation failed", SeverityNumber.ERROR, {
+      action: "revalidateTagAction",
+      tag,
+      error: message,
+    });
+    return { success: false, message };
   }
 }
 
 export async function revalidatePathAction(path: string, secret?: string) {
   if (!isAuthorized(secret)) {
+    emitServerLog("Unauthorized path revalidation attempt", SeverityNumber.WARN, {
+      action: "revalidatePathAction",
+      path,
+    });
     return { success: false, message: "Unauthorized: Invalid revalidation token" };
   }
   try {
     revalidatePath(path);
+    emitServerLog("Path revalidated", SeverityNumber.INFO, {
+      action: "revalidatePathAction",
+      path,
+    });
     return {
       success: true,
       message: `Successfully revalidated path: "${path}"`,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    return { success: false, message: (error as Error).message };
+    const message = (error as Error).message;
+    emitServerLog("Path revalidation failed", SeverityNumber.ERROR, {
+      action: "revalidatePathAction",
+      path,
+      error: message,
+    });
+    return { success: false, message };
   }
 }
 
